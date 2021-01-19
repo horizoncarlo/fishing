@@ -1,0 +1,474 @@
+var currentCast = {
+    castInterval: null,
+    castMultiplicator: 1,
+    x: 0,
+    y: 0,
+    accuracy: 0
+};
+var player = {
+    avatar: {},
+    // name, div, img, bobber, castBar, boat, pier, island
+};
+
+function initPlayer() {
+    player.name = getRandomName();
+    player.avatar = {
+        idle: './images/player/idle.gif',
+        move: './images/player/move.gif',
+        wait: './images/player/wait.gif',
+        hook: './images/player/hook.gif',
+        width: '48px',
+        height: '48px'
+    };
+    
+    player.div = document.createElement('div');
+    player.div.id = 'player';
+    player.div.title = 'Click to cancel your current line';
+    player.div.style.position = 'absolute';
+    player.div.style.zIndex = 100;
+    player.div.style.width = player.avatar.width;
+    player.div.style.height = player.avatar.height;
+    
+    // Reel in any line if we have one out when we click on our player
+    player.div.addEventListener('click', function(e) {
+        stopFishing();
+    });
+    
+    var image = document.createElement('img');
+    player.image = image;
+    setIdleAnimation();
+    player.div.appendChild(player.image);
+    
+    addChild(player.div);
+    
+    // Setup some other elements for future use
+    initBobber();
+    initCastBar();
+}
+
+function initBobber() {
+    var bobber = document.createElement('img');
+    bobber.className = 'bobber';
+    bobber.addEventListener('click', clickToFish, true);
+    
+    // Store our bobber for future reference
+    player.bobber = bobber;
+    
+    // Add the bobber, then hide it until we need it
+    addChild(player.bobber);
+    hideBobber();
+}
+
+function initCastBar() {
+    var castBarWrap = document.createElement('div');
+    castBarWrap.className = 'castBarWrap';
+    castBarWrap.addEventListener('click', clickToFish, true);
+    
+    var castRod = document.createElement('img');
+    castRod.className = 'castRod';
+    castRod.src = './images/rods/rod' + getRandomInt(1, 5) + '.png';
+    
+    var castBarFill = document.createElement('div');
+    castBarFill.id = 'fill';
+    castBarFill.className = 'castBar';
+    
+    // Store our cast bar for future reference
+    player.castBar = castBarWrap;
+    
+    // Add the cast bar, then hide it until we need it
+    castBarFill.appendChild(castRod);
+    castBarWrap.appendChild(castBarFill);
+    addChild(castBarWrap);
+    hideCastBar();
+}
+
+/**
+ * After we have clicked to fish we need to charge up our line, then cast it
+ */
+function clickToFish(e) {
+    // Determine if we have a hit, if so reel it in
+    // Otherwise clean up any old line and progress
+    if (!hasHit) {
+        stopFishing();
+        
+        // If we have an existing cast bar the click should lock in our current cast accuracy
+        if (player.castBar && player.castBar && player.castBar.style.visibility === 'visible') {
+            stopCastBar();
+            
+            // Round our cast accuracy
+            currentCast.accuracy = Math.ceil(currentCast.accuracy);
+            var msg = currentCast.accuracy + '% Accuracy';
+            if (currentCast.accuracy >= 100) {
+                msg += ' (Great!)';
+            }
+            showMessage(msg);
+            
+            // Unfortunately really hardcoded location for our line start point, due to
+            //  the fisherman image we use and how we want to have the rod match
+            drawFishingLine(player.div.getBoundingClientRect().left+43, player.div.getBoundingClientRect().top+48,
+                            currentCast.x, currentCast.y);
+            showBobber(currentCast.x, currentCast.y);
+            setWaitAnimation();
+            
+            // Allow a gold highlight to cancel our line
+            player.div.className = 'player';
+            
+            // Now start the fishing timer
+            startFishing();
+        }
+        // Otherwise show a cast bar
+        else {
+            // If we came from a key press instead of a mouse click, we want to show the bar over our head
+            if (e.fromKey) {
+                startCastBar(player.div.getBoundingClientRect().left,
+                             parseInt(player.div.getBoundingClientRect().top) - 30);
+                
+                // Also reset our x/y to the value we got from the key event
+                currentCast.x = e.clientX;
+                currentCast.y = e.clientY;
+            }
+            else {
+                startCastBar(e.clientX, e.clientY);
+            }
+            setMoveAnimation();
+        }
+    }
+    else {
+        // Caught something, reel it in
+        cancelFishingTimers();
+        setHookAnimation();
+        showQTE();
+    }
+    
+    // Clear any helper timer once we've fished once
+    if (helperTimeout) {
+        clearTimeout(helperTimeout);
+        helperTimeout = null;
+    }
+}
+
+function startCastBar(x, y) {
+    // TODO Need to account for cast origin being right near the edge of the screen, and make sure bar doesn't go off
+    
+    if (player.castBar) {
+        currentCast.x = x;
+        currentCast.y = y;
+        currentCast.castMultiplicator = 1; // Filling up
+        
+        // Stop any existing instance, then show a fresh one
+        stopCastBar();
+        showCastBar();
+        
+        var currentWait = 0; // Potential wait where we skip some intervals
+        var currentIter = 0; // Current count of how many times we've been to 100% and not cast
+        var fill = player.castBar.querySelector('#fill');
+        currentCast.accuracy = parseInt(fill.style.width);
+        currentCast.castInterval = setInterval(function() {
+            // If we have a defined wait/skip, then ignore this loop for now
+            if (currentWait > 0) {
+                currentWait--;
+                return;
+            }
+            
+            // Increase/decrease our cast by the desired step
+            var currentStep = difficulty.CAST_STEP;
+            if (difficulty.CAST_SPEEDUP > 0) {
+                currentStep += (currentIter * difficulty.CAST_SPEEDUP);
+            }
+            // Hard cap the step at 3x the original, to ensure we don't go to an unusable speed
+            if (currentStep/4 > difficulty.CAST_STEP) {
+                currentStep = difficulty.CAST_STEP * 4;
+            }
+            currentCast.accuracy += currentStep * currentCast.castMultiplicator;
+            
+            // If we're over 100% Accuracy then start the bar going the other way
+            if (currentCast.accuracy >= 100) {
+                currentCast.castMultiplicator *= -1;
+                currentCast.accuracy = 100;
+                currentIter++;
+                
+                // Stall the cast at the top for a bit to provide a forgiving window
+                if (difficulty.CAST_TOPWAIT > 0) {
+                    currentWait = difficulty.CAST_TOPWAIT;
+                }
+            }
+            // Same for 0 or below, start climbing back up
+            else if (currentCast.accuracy <= 0) {
+                currentCast.castMultiplicator *= -1;
+                currentCast.accuracy = 0;
+            }
+            
+            fill.style.width = currentCast.accuracy + '%';
+            
+            // Change our color based on cast accuracy
+            if (currentCast.accuracy >= 95) {
+                fill.style.backgroundColor = '#FFFFFF';
+            }
+            else if (currentCast.accuracy >= 65) {
+                fill.style.backgroundColor = '#00FF00';
+            }
+            else if (currentCast.accuracy <= 55 && currentCast.accuracy > 25) {
+                fill.style.backgroundColor = '#00BF00';
+            }
+            else if (currentCast.accuracy <= 25) {
+                fill.style.backgroundColor = '#008000';
+            }
+        }, difficulty.CAST_INTERVAL);
+    }
+}
+
+function stopCastBar() {
+    if (currentCast.castInterval) {
+        clearInterval(currentCast.castInterval);
+        currentCast.castInterval = null;
+        
+        setIdleAnimation();
+    }
+    
+    if (player.castBar.querySelector('#fill')) {
+        player.castBar.querySelector('#fill').style.width = 0;
+    }
+    
+    hideCastBar();
+}
+
+function showCastBar() {
+    if (player.castBar) {
+        player.castBar.style.top = currentCast.y - (player.castBar.getBoundingClientRect().height/2) + 'px';
+        player.castBar.style.left = currentCast.x - (player.castBar.getBoundingClientRect().width/2) + 'px';
+        player.castBar.style.visibility = 'visible';
+    }
+}
+
+function hideCastBar() {
+    if (player.castBar) {
+        player.castBar.style.visibility = 'hidden';
+    }
+}
+
+function clearFishingLine() {
+    // Clean up our old line
+    var existingLine = document.getElementsByClassName('fl');
+    if (existingLine && existingLine.length > 0) {
+        var parent = document.getElementById('game');
+        while (existingLine.length) {
+            parent.removeChild(existingLine[0]);
+        }
+    }
+}
+
+function highlightFishingLine() {
+    colorFishingLine('red');
+}
+
+function unhighlightFishingLine() {
+    colorFishingLine('#DDDDDD');
+}
+
+function colorFishingLine(color) {
+    // Clean up our old line
+    var existingLine = document.getElementsByClassName('fl');
+    if (existingLine && existingLine.length > 0) {
+        for (var i = 0; i < existingLine.length; i++) {
+            existingLine[i].style.backgroundColor = color;
+        }
+    }
+}
+
+/**
+ * Thanks to https://jstutorial.medium.com/coding-your-first-algorithm-bc0fc2a4e862
+ *  for a canvas-free way to draw a line
+ */
+function drawFishingLine(x1, y1, x2, y2) {
+    // Iterators, counters required by algorithm
+    let x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;
+    // Calculate line deltas
+    dx = x2 - x1;
+    dy = y2 - y1;
+    // Create a positive copy of deltas (makes iterating easier)
+    dx1 = Math.abs(dx);
+    dy1 = Math.abs(dy);
+    // Calculate error intervals for both axis
+    px = 2 * dy1 - dx1;
+    py = 2 * dx1 - dy1;
+    // The line is X-axis dominant
+    if (dy1 <= dx1) {
+        // Line is drawn left to right
+        if (dx >= 0) {
+            x = x1;
+            y = y1;
+            xe = x2;
+        } else { // Line is drawn right to left (swap ends)
+            x = x2;
+            y = y2;
+            xe = x1;
+        }
+        pixel(x, y); // Draw first pixel
+        // Rasterize the line
+        for (i = 0; x < xe; i++) {
+            x = x + 1;
+            // Deal with octants...
+            if (px < 0) {
+                px = px + 2 * dy1;
+            } else {
+                if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) {
+                    y = y + 1;
+                } else {
+                    y = y - 1;
+                }
+                px = px + 2 * (dy1 - dx1);
+            }
+            // Draw pixel from line span at
+            // currently rasterized position
+            pixel(x, y);
+        }
+    } else { // The line is Y-axis dominant
+        // Line is drawn bottom to top
+        if (dy >= 0) {
+            x = x1;
+            y = y1;
+            ye = y2;
+        } else { // Line is drawn top to bottom
+            x = x2;
+            y = y2;
+            ye = y1;
+        }
+        pixel(x, y); // Draw first pixel
+        // Rasterize the line
+        for (i = 0; y < ye; i++) {
+            y = y + 1;
+            // Deal with octants...
+            if (py <= 0) {
+                py = py + 2 * dx1;
+            } else {
+                if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) {
+                    x = x + 1;
+                } else {
+                    x = x - 1;
+                }
+                py = py + 2 * (dx1 - dy1);
+            }
+            // Draw pixel from line span at
+            // currently rasterized position
+            pixel(x, y);
+        }
+    }
+}
+
+function pixel(x, y) {
+    var pixel = document.createElement('span');
+    pixel.className = 'fl';
+    pixel.style.left = x + 'px';
+    pixel.style.top = y + 'px';
+    addChild(pixel);
+}
+
+function showBobber(x, y) {
+    // Hide any old bobber
+    hideBobber();
+    
+    if (player.bobber) {
+        player.bobber.src = './images/bobber_wait.gif';
+        player.bobber.style.left = x-5 + 'px';
+        player.bobber.style.top = y-5 + 'px';
+        player.bobber.style.display = 'block';
+    }
+}
+
+function hideBobber() {
+    if (player.bobber) {
+        player.bobber.style.display = 'none';
+    }
+}
+
+function hidePlayer() {
+    player.div.style.display = 'none';
+}
+
+function showPlayer() {
+    player.div.style.display = 'block';
+}
+
+/**
+ * Put the player on their fishing location
+ * Normally this is on the pier
+ * But there is a chance to also be in the boat or just on the shore or even rarely on an island
+ */
+function putPlayerOnHome() {
+    // Pier
+    if (!player.island && player.pier && Math.random() > 0.4) {
+        player.div.style.top = player.pier.getBoundingClientRect().top + 'px';
+        player.div.style.left = player.pier.getBoundingClientRect().left + PIER_WIDTH-PIER_WIDTH/2.8 + 'px';
+    }
+    // Boat or Shore or Island
+    else {
+        var removePier = false;
+        var removeBoat = false;
+        if (player.island) { // Set randomly in setup.js, so not always what we do
+            removeBoat = true;
+            player.div.style.top = player.island.getBoundingClientRect().top + (ISLAND_HEIGHT/4) + 'px';
+            player.div.style.left = player.island.getBoundingClientRect().left + (ISLAND_WIDTH/2) + 'px';
+        }
+        else if (player.boat && Math.random() > 0.3) {
+            player.div.style.top = player.boat.getBoundingClientRect().top - (BOAT_HEIGHT/3) + 'px';
+            player.div.style.left = player.boat.getBoundingClientRect().left + (BOAT_WIDTH/3) + 'px';
+        }
+        else {
+            removePier = true;
+            removeBoat = true;
+            player.div.style.top = getRandomInt(50, getDocumentHeight()-50) + 'px';
+            player.div.style.left = LAND_WIDTH - 10 + 'px';
+        }
+        
+        // Remove our pier and boat if necessary, such as being on the shore or island
+        if (removePier && player.pier) {
+            deleteChild(player.pier);
+        }
+        if (removeBoat && player.boat) {
+            deleteChild(player.boat);
+            
+            // Add a beached boat
+            var beachedBoat = applyLandObject('./images/boat_land.png', 3);
+            if (Math.random() > 0.75) {
+                flipObject(beachedBoat);
+            }
+        }
+    }
+}
+
+/**
+ * Draw a big (temporary) arrow over the player image
+ */
+function highlightPlayer() {
+    var arrow = document.createElement('img');
+    arrow.src = './images/arrow.gif';
+    arrow.className = 'arrow';
+    arrow.style.position = 'relative';
+    arrow.style.top = player.div.getBoundingClientRect().top - (parseInt(player.avatar.height, 10)/1.1) + 'px';
+    arrow.style.left = player.div.getBoundingClientRect().left + 'px';
+    addChild(arrow);
+    
+    // Fade out then remove the arrow after a bit
+    setTimeout(function() {
+        arrow.style.opacity = 0;
+        setTimeout(function() {
+            deleteChild(arrow);
+        }, 3000);
+    }, 3000);
+}
+
+function setMoveAnimation() {
+    player.image.src = player.avatar.move;
+}
+
+function setWaitAnimation() {
+    player.image.src = player.avatar.wait;
+}
+
+function setHookAnimation() {
+    player.image.src = player.avatar.hook;
+}
+
+function setIdleAnimation() {
+    player.image.src = player.avatar.idle;
+}

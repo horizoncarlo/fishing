@@ -1,0 +1,238 @@
+@font-face {
+    font-family: 'CarpalTunnel';
+    src: url('../fonts/Carpal-Tunnel.ttf');
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body {
+    background: linear-gradient(to right, #0048A0, #002758);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+button {
+    opacity: 1;
+    font: inherit;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    height: 50px;
+    margin: 2px 0;
+    padding: 0.5em 1em;
+    border: outset 2px transparent;
+    border-radius: 4px;
+    color: black;
+    background-color: goldenrod;
+}
+
+button:hover {
+    border-color: #FFEAB8;
+    text-shadow: 0 0 10px white;
+    filter: brightness(110%);
+}
+
+input[type='radio'],
+input[type='checkbox']{
+    -ms-transform: scale(1.5);
+    -moz-transform: scale(1.5);
+    -webkit-transform: scale(1.5);
+    -o-transform: scale(1.5);
+    transform: scale(1.5);
+    margin: 5px 7px 5px 12px;
+}
+
+fieldset {
+    white-space: nowrap;
+    width: 100%;
+    margin: 10px auto 10px auto;
+    font-size: 0.9em;
+}
+
+legend {
+    font-size: 1.1em;
+    text-shadow: 2px 2px #444444;
+    text-align: center;
+    color: #00AA00;
+}
+
+.center {
+    text-align: center;
+}
+
+.shack:hover, .player:hover {
+    border-radius: 30px;
+    background-color: rgba(255, 255, 0, 0.5);
+    box-shadow: 0 0 5px 5px rgba(255, 255, 0, 0.5);
+}
+
+.shack:hover {
+    border-radius: 2px;
+    background-image: url('../images/fishing_shack-open.png');
+}
+
+.shack {
+    background-image: url('../images/fishing_shack.png');
+}
+
+.land, .beach, .water {
+    z-index: 0;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background-repeat: repeat;
+}
+
+.land {
+    left: 0;
+    background: #D9AE80;
+    background-image: url('../images/sand_base.png');
+    cursor: not-allowed;
+}
+
+.beach {
+    background-color: transparent;
+    background-image: url('../images/sand_edge.png');
+    width: 18px;
+    z-index: 1;
+    cursor: not-allowed;
+}
+
+.water {
+    background-color: #002758;
+    background-image: url('../images/base/BFWwatertiles.gif');
+    cursor: crosshair;
+}
+
+.pier {
+    position: absolute;
+    z-index: 10;
+}
+
+.castBarWrap {
+    position: absolute;
+    width: 300px;
+    z-index: 110;
+}
+
+.castRod {
+    width: 300px;
+    border: 1px solid black;
+    border-radius: 5px;
+    box-shadow: 0 0 15px 5px rgba(0,0,0,0.5);
+}
+
+.castBar {
+    width: 0;
+    border-radius: 5px;
+    border-right: 2px solid rgb(255,255,0);
+}
+
+.arrow {
+    position: absolute;
+    z-index: 30;
+    opacity: 1;
+    transition: opacity 2s;
+    cursor: not-allowed;
+}
+
+.bobber {
+    position: absolute;
+    z-index: 85;
+}
+
+.message {
+    position: absolute;
+    transition: top 6s, opacity 4s;
+    opacity: 1;
+    z-index: 30;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 0 10px black;
+    text-align: center;
+}
+
+.qte {
+    position: absolute;
+    top: 2.5%;
+    left: 2.5%;
+    font-family: 'CarpalTunnel';
+    width: 95%;
+    max-height: calc(95% - 40px);
+    background: linear-gradient(#0048A0, #002758);
+    border: 5px solid #0071FF;
+    border-radius: 15px;
+    z-index: 125;
+    text-align: center;
+    overflow-y: auto;
+}
+
+.qteText, .qteTip {
+    color: white;
+}
+
+.qteText {
+    font-size: 1200%;
+    letter-spacing: 40px;
+    word-wrap: break-word;
+    display: block;
+    vertical-align: middle;
+    padding: 20px 0 20px 0;
+}
+
+.qteTip {
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.qteProgress {
+    display: block;
+    width: 100%;
+    height: 10px;
+    background-color: white;
+}
+
+/** backgroundObject - short name because we use a ton of them */
+.bo, .wo {
+    position: absolute;
+    z-index: 1;
+    cursor: not-allowed;
+}
+
+.wo {
+    cursor: crosshair;
+}
+
+/** fishing line - short name because we use a ton of them */
+.fl {
+    position: absolute;
+    height: 1px;
+    width: 1px;
+    background-color: #DDDDDD;
+    z-index: 80;
+    box-shadow: 0 0 5px black;
+}
+
+.snowflake {
+  color: #fff;
+  font-size: 1em;
+  font-family: Arial;
+  text-shadow: 0 0 1px #000;
+}
+
+@-webkit-keyframes snowflakes-fall{0%{top:-10%}100%{top:100%}}@-webkit-keyframes snowflakes-shake{0%{-webkit-transform:translateX(0px);transform:translateX(0px)}50%{-webkit-transform:translateX(80px);transform:translateX(80px)}100%{-webkit-transform:translateX(0px);transform:translateX(0px)}}@keyframes snowflakes-fall{0%{top:-10%}100%{top:100%}}@keyframes snowflakes-shake{0%{transform:translateX(0px)}50%{transform:translateX(80px)}100%{transform:translateX(0px)}}.snowflake{position:fixed;top:-10%;z-index:9999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;cursor:default;-webkit-animation-name:snowflakes-fall,snowflakes-shake;-webkit-animation-duration:10s,3s;-webkit-animation-timing-function:linear,ease-in-out;-webkit-animation-iteration-count:infinite,infinite;-webkit-animation-play-state:running,running;animation-name:snowflakes-fall,snowflakes-shake;animation-duration:10s,3s;animation-timing-function:linear,ease-in-out;animation-iteration-count:infinite,infinite;animation-play-state:running,running}.snowflake:nth-of-type(0){left:1%;-webkit-animation-delay:0s,0s;animation-delay:0s,0s}.snowflake:nth-of-type(1){left:10%;-webkit-animation-delay:1s,1s;animation-delay:1s,1s}.snowflake:nth-of-type(2){left:20%;-webkit-animation-delay:6s,.5s;animation-delay:6s,.5s}.snowflake:nth-of-type(3){left:30%;-webkit-animation-delay:4s,2s;animation-delay:4s,2s}.snowflake:nth-of-type(4){left:40%;-webkit-animation-delay:2s,2s;animation-delay:2s,2s}.snowflake:nth-of-type(5){left:50%;-webkit-animation-delay:8s,3s;animation-delay:8s,3s}.snowflake:nth-of-type(6){left:60%;-webkit-animation-delay:6s,2s;animation-delay:6s,2s}.snowflake:nth-of-type(7){left:70%;-webkit-animation-delay:2.5s,1s;animation-delay:2.5s,1s}.snowflake:nth-of-type(8){left:80%;-webkit-animation-delay:1s,0s;animation-delay:1s,0s}.snowflake:nth-of-type(9){left:90%;-webkit-animation-delay:3s,1.5s;animation-delay:3s,1.5s}
