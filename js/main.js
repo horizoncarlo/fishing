@@ -1,27 +1,41 @@
-// TODO:
 /*
+TODO:
+- Get some more movement on the screen. Little crabs or lizards scurrying on land, a gentle bob/rock to the boat/pier, etc.
+- Add more/different QTE events? Spamming the mouse scroll wheel could be interesting as it'd feel like reeling a fish in
+-- Basically 'qte.onwheel = func' in 'showQTE'
 - Add rain effect (https://codepen.io/arickle/pen/XKjMZY) instead of current snowflakes
-- Can eventually add a money/points system
-- Scoreboard of casts/bait used vs fish caught?
-- Buy fishing rod upgrades? Like more power, slow charge (so easier to hit), etc. Or buy different baits?
-- Expand fishing shack settings to a full menu
-- Add a basic help system of an animated bird who you can click and will give you tips and explain game mechanics (like "re-cast after you miss a fish")?
-- Fantastical fish to catch, not just basic stuff
+- Expand fishing shack settings to a full menu?
+-- Buy fishing rod upgrades? Like more power, slow charge (so easier to get perfect), etc.
+-- Could choose/buy your bait for a certain subset of fishes (basically 1 poster each) at the start of the day?
+- Add a basic help system of an animated bird (somewhere on land) who you can click and will give you tips and explain game mechanics (like "re-cast after you miss a fish")?
+-- Speaking of birds should the flying ones we have just be the tip system? Simple and elegant...or they could give bait
+- Have difficulty (and money reward) increase by a factor of what day it is?
+
+UNLIKELY:
 - Fish splashes in the water every so often, with a bonus to rarity/ease of catch if you cast right on the spot
-- Sometimes get a fast QTE round with only a single item, but barely any time to react?
-- Local storage for some persistence?
+-- Added stress, breaks flow of just casting when you want, always awkward to give a substantial bonus for without fish rarity
+- Could consider having powerups in the water you hook, like old boots or tackle boxes or whatever, that give +bait or easier QTE for the next X times or whatever
+-- Takes away from the purity of the game and has the same downsides as splashes
+- Possibly have a "Barter" (or similar) button the night screen to re-roll your earnings?
+-- Better for pacing to have night be a time to chill instead of mash a button
 */
 
-var hasHit = false;
-var currentChance = 0;
-var fishingInterval, fishingTimeout, guaranteedTimeout, getawayTimeout, qteInterval;
-var fishingSkipInterval = 0;
-var qteCount = 0;
+var hasHit = false; // If we have a fish hit or not
+var currentChance = 0; // Current chance for a fish hit on the line we have out
+var fishingInterval, fishingTimeout, guaranteedTimeout, getawayTimeout, qteInterval; // Bunch of timers and intervals for async countdowns and so on
+var fishingSkipInterval = 0; // How many intervals to skip at the moment
+var qteCount = 0; // How many QTE we've done (pass or fail), used for softstart provided by difficulty
 var qteAvailable = []; // Weighted array of QTE options
-var currentQte = null;
-var mathSolution;
+var currentQte = null; // Current state of the QTE puzzle
+var mathSolution; // Current solution to a QTE math problem
+var lightningRound = false; // Rarely have a super fast, super low count QTE
 
 function keypressListener(e) {
+    // Ignore if we're at a night
+    if (document.getElementById('night')) {
+        return;
+    }
+    
     if (e.code === 'Space') {
         if (typeof currentQte !== 'string') {
             // If we don't have a line out yet, randomly cast one
@@ -36,8 +50,13 @@ function keypressListener(e) {
             });
         }
     }
-    else if (e.code === 'Escape' && typeof currentQte === 'string') {
-        failedQTE();
+    else if (e.code === 'Escape' && (typeof currentQte === 'string' || isTrophyVisible())) {
+        if (isTrophyVisible()) {
+            hideTrophy();
+        }
+        else if (typeof currentQte === 'string') {
+            failedQTE();
+        }
     }
     else if (typeof currentQte === 'string') {
         var typed = String.fromCharCode(e.which);
@@ -71,8 +90,6 @@ function keypressListener(e) {
             // QTE has been solved
             if (currentQte.length === 0 ||
                 (typeof mathSolution === 'string' && mathSolution.length === 0)) {
-                mathSolution = null;
-                currentQte = null;
                 handleCaughtFish();
             }
         }
@@ -128,12 +145,17 @@ function startFishing() {
  *  as well as reeling in our line, hiding the bobber, and resetting our animation
  * This also counts as reeling in the fish depending on our hasHit flag
  *
+ * @param true to also hide/cancel the QTE dialog
  * @return true if a fish was caught
  */
-function stopFishing() {
+function stopFishing(alsoHideQTE) {
     var toReturn = hasHit;
     
     cancelFishingTimers();
+    
+    if (alsoHideQTE) {
+        hideQTE();
+    }
     
     hasHit = false;
     clearFishingLine();
@@ -192,6 +214,9 @@ function gotHit() {
         player.bobber.src = './images/bobber_caught.gif';
     }
     highlightFishingLine();
+    if (beep && difficulty.ALLOW_SOUND) {
+        beep.play();
+    }
     showMessage('Hit!');
     
     // Determine how long until the fish gets away
@@ -227,23 +252,63 @@ function gotAway() {
 }
 
 function handleCaughtFish() {
-    stopFishing();
-    hideQTE();
+    // Increment our catch
+    incrementScoreboard(null, 1);
+    
+    // Stop fishing and show the catch
+    stopFishing(true);
     showMessage('Caught Fish');
     
-    // TODO Caught fish dialog
+    // Setup our trophy dialog
+    var trophy = document.getElementById('trophy');
+    if (!trophy) {
+        trophy = document.createElement('div');
+        trophy.id = 'trophy';
+        trophy.className = 'trophy';
+        addChild(trophy);
+    }
+    
+    // Hide until we're ready
+    trophy.style.visibility = 'hidden';
+    
+    // Update our trophy content
+    var caughtFish = getRandomFish();
+    var filterHue = Math.random() <= 0.35 ? 0 : getRandomInt(1, 360);
+    trophy.innerHTML = 'You caught a <b>' + caughtFish.name + '</b><br/>' +
+                       '<img src="' + caughtFish.path + '" class="trophyImg"' +
+                       '     style="filter: hue-rotate(' + filterHue + 'deg); max-width: ' + Math.floor(getDocumentWidth()-100) + 'px; max-height: ' + Math.floor(getDocumentHeight()-300) + 'px;"/>' +
+                       '<br/>' +
+                       '<button onclick="hideTrophy()" class="takeButton"><img src="./images/hook.png" class="trophyHook shake"/>&nbsp;Take</button>';
+    
+    // Some timeout shenanigans, primarily so that our bounding client rect is ready
+    // And also the visibility won't flicker from the top of the page to it's position
+    setTimeout(function() {
+        trophy.style.top = (getDocumentHeight() - trophy.getBoundingClientRect().height)/2 + 'px';
+        trophy.style.left = (getDocumentWidth() - trophy.getBoundingClientRect().width)/2 + 'px';
+        setTimeout(function() {
+            trophy.style.visibility = 'visible';
+        }, 0);
+    }, 50);
+}
+
+function hideTrophy() {
+    if (document.getElementById('trophy')) {
+        document.getElementById('trophy').style.visibility = 'hidden';
+    }
+}
+
+function isTrophyVisible() {
+    return document.getElementById('trophy') &&
+           document.getElementById('trophy').style.visibility !== 'hidden';
 }
 
 function failedQTE() {
     hasHit = false;
-    stopFishing();
-    hideQTE();
+    stopFishing(true);
     showMessage('Got Away');
 }
 
 function showQTE() {
-    // TODO Change to random water/ocean background for each QTE
-    
     var qte = document.getElementById('qte');
     if (!qte) {
         qte = document.createElement('div');
@@ -290,16 +355,27 @@ function showQTE() {
             clearInterval(qteInterval);
             qteInterval = null;
         }
+        
+        var intervalMs = difficulty.QTE_INTERVAL;
+        if (lightningRound) {
+            intervalMs /= 10;
+        }
+        
         qteInterval = setInterval(function() {
             updateQTEProgress();
-        }, difficulty.QTE_INTERVAL);
-    },0);
+        }, intervalMs);
+    }, 0);
 }
 
 function hideQTE() {
     if (document.getElementById('qte')) {
         document.getElementById('qte').style.visibility = 'hidden';
     }
+    
+    // Reset our data too
+    mathSolution = null;
+    currentQte = null;
+    lightningRound = false;
 }
 
 /**
@@ -388,6 +464,15 @@ function makeQTEPuzzle() {
     }
     else {
         var count = getRandomInt(minlength, maxlength);
+        
+        // Determine if we're doing a lightning round
+        // This can only happen on existing difficulties with a minimum QTE length of more than 1
+        // Then we use the minimum QTE - 1, but have much less time to solve
+        if (difficulty.QTE_MIN > 1 && Math.random() > 0.95) {
+            lightningRound = true;
+            count = difficulty.QTE_MIN-1;
+        }
+        
         for (var i = 0; i < count; i++) {
             var type = qteAvailable[getRandomInt(0, qteAvailable.length-1)];
             if (type === 'lowNumbers') {
@@ -438,44 +523,105 @@ function makeQTEArray() {
     return toReturn;
 }
 
+/**
+ * Convenience function to update the scoreboard with an incremental change
+ * So you could pass -1 to reduce the player's bait, for example
+ */
+function incrementScoreboard(baitChange, caughtChange) {
+    if (typeof baitChange === 'number') {
+        player.bait += baitChange;
+        
+        // Notify if we're down to our last bait
+        if (player.bait === 0) {
+            showMessage('Last cast today');
+        }
+    }
+    if (typeof caughtChange === 'number') {
+        player.caught += caughtChange;
+        player.totalCaught += caughtChange;
+        if (player.caught <= 0) {
+            player.caught = 0;
+        }
+        if (player.totalCaught <= 0) {
+            player.totalCaught = 0;
+        }
+    }
+    updateScoreboard();
+}
+
+function updateScoreboard() {
+    // Store our update
+    saveSession();
+    
+    var scoreboard = document.getElementById('scoreboard');
+    if (scoreboard) {
+        scoreboard.innerHTML = '<table width="100%">' +
+                               '<tr><th colspan="2">Day ' + player.day + '</th></tr>' +
+                               '<tr><td width="80%">Bait Left:</td>' +
+                               '<td class="scoreNum" width="20%" style="color: ' + (player.bait <= 1 ? 'red' : 'black') + ';">' + player.bait + '</td></tr>' +
+                               '<tr><td>Fish Caught:</td>' +
+                               '<td class="scoreNum">' + player.caught + '</td></tr>' +
+                               '<tr><td>Money:</td>' +
+                               '<td class="scoreNum">$' + Number(player.money).toLocaleString() + '</td></tr>' +
+                               '<tr><td colspan="2" align="center"><button onclick="retirePlayer(this)" title="Retire to clear your statistics and start over">Retire</button></td></tr>' +
+                               '</table>';
+    }
+}
+
 function toggleDifficulty() {
     // Stop fishing to get a clean slate for difficulty change
-    hideQTE();
-    stopFishing();
+    stopFishing(true);
     
     // Change the difficulty
     difficulty.current++;
-    
-    // Loop around back to easiest
     if (difficulty.current > 3) {
         difficulty.current = 0;
     }
     
+    // Store our update
+    saveSession();
+    
     // Apply our difficulty
-    applyDifficulty();
+    applyDifficulty(true);
     
     // Notify, in case the fishy visual indicator isn't clear enough
     showMessage('Difficulty ' + difficulty.current);
+}
+
+function newDay() {
+    // Get our earnings
+    var earned = calculateEarned();
     
-    // Add more fish to show our difficulty
-    var shack = document.getElementById('shack');
-    if (shack) {
-        var currentFish = document.getElementsByClassName('hangingFish');
-        if (currentFish && currentFish.length > 0) {
-            while (currentFish.length) {
-                deleteChild(currentFish[0]);
-            }
-        }
-        
-        if (difficulty.current > 0) {
-            for (var j = 0; j < difficulty.current; j++) {
-                var fish = applyLandObject('./images/hanging_fish.png', 11);
-                fish.className += ' hangingFish';
-                
-                // Unfortunately have to hardcode our position to line up with the shack
-                fish.style.top = 70 - (j * 10) + 'px';
-                fish.style.left = 70 - (j * 1) + 'px';
-            }
-        }
-    }
+    var night = document.createElement('div');
+    night.id = 'night';
+    night.className = 'nightOverlay';
+    night.style.opacity = 0;
+    
+    // Note if we got a perfect day (used all bait) and also show our earnings
+    var closeText = document.createElement('div');
+    closeText.innerHTML = (player.caught >= DEFAULT_BAIT ? 'Perfect day ' : 'Day ') + player.day + ' draws to a close...';
+    var earnText = document.createElement('div');
+    earnText.className = 'nightEarn';
+    earnText.innerHTML = 'You earned $' + Number(earned).toLocaleString();
+    
+    night.appendChild(closeText);
+    night.appendChild(earnText);
+    addChild(night);
+    
+    // Fade in the night sky
+    setTimeout(function() {
+        night.style.opacity = 1;
+    }, 10);
+    
+    // Store fresh bait and the new day value, etc.
+    // Refresh after a few seconds, which will put the player in a new location
+    setTimeout(function() {
+        player.day++;
+        player.bait = DEFAULT_BAIT;
+        player.caught = 0;
+        player.money += earned;
+        updateScoreboard();
+            
+        location.reload();
+    }, 4000);
 }

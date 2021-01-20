@@ -1,5 +1,6 @@
 var difficulty = {
     current: 0, // 0 = for kids, 1 = easy, 2 = medium, 3 = hard, with room to grow
+    ALLOW_SOUND: true, // Have a 'ding/beep' sound play with a fish hit. Turning on is easier.
     QTE_SOFTSTART: 0, // How many QTE events to be softer/easier before the real values kick in. Set to 0 to disable. Higher will be easier.
     QTE_LUCKYCHANCE: 0, // Percent chance to get a "lucky" QTE, which is all the same button to be pressed. Set to 0 to disable. Higher will be easier.
     QTE_MIN: 1, // Minimum QTE events to pass to catch a fish
@@ -18,6 +19,7 @@ var difficulty = {
     CAST_SPEEDUP: 0.1, // How much to speed up on each iteration of the cast bar. Set to 0 to disable speedup. Higher is harder.
     CAST_TOPWAIT: 40, // How many intervals to skip/wait once the cast reaches the top. This provides a small window to make it easier to get max cast. Put to 0 for no wait. Higher is easier.
     CAST_MAX_BONUS: 0, // Potential extra bonus if perfect accuracy is achieved. Works out to percent/100, so don't put above 1. Set to 0 to disable. Higher is easier.
+    CAST_ALLOW_COLOR: true, // Change the color of the cast line on fish hit. If false the player needs to look for the message and bobber
     FISHING_INTERVAL: 800, // How often (in milliseconds)  we check if our line caught something. Higher is harder.
     FISHING_INITIAL_DELAY_MIN: 500, // An initial delay (in milliseconds) before starting our fishing interval. Higher is harder.
     FISHING_INITIAL_DELAY_MAX: 4000,
@@ -34,9 +36,12 @@ var difficulty = {
  * Use preset values for our difficulty.current
  * Of course difficulty can mean a lot of things, so there ARE some random factors in here
  * Primarily the difficulty could come from long or complex QTE, or short fishing hook time, etc.
+ *
+ * @param showFish set to true to update the number of fish on our shack as a visual indicator
  */
-function applyDifficulty() {
+function applyDifficulty(showFish) {
     if (difficulty.current === 3) { // Hard
+        difficulty.ALLOW_SOUND = false;
         difficulty.QTE_SOFTSTART = 0;
         difficulty.QTE_LUCKYCHANCE = 1;
         difficulty.QTE_MIN = getRandomInt(3, 4);
@@ -44,7 +49,7 @@ function applyDifficulty() {
         difficulty.QTE_TYPES = [ 'lowNumbers', 'highNumbers', 'letters', 'math' ];
         difficulty.QTE_LOWNUMBERS = 3;
         difficulty.QTE_HIGHNUMBERS = 3;
-        difficulty.QTE_LETTERS = 4;
+        difficulty.QTE_LETTERS = 5;
         difficulty.QTE_MATH_CHANCE = 30;
         difficulty.QTE_MATH_MIN = getRandomInt(5, 8);
         difficulty.QTE_MATH_MAX = getRandomInt(10, 20);
@@ -55,6 +60,7 @@ function applyDifficulty() {
         difficulty.CAST_SPEEDUP = getRandomInt(40, 50)/100;
         difficulty.CAST_TOPWAIT = 0;
         difficulty.CAST_MAX_BONUS = 0;
+        difficulty.CAST_ALLOW_COLOR = Math.random() <= 0.8 ? false : true;
         difficulty.FISHING_INTERVAL = 800;
         difficulty.FISHING_INITIAL_DELAY_MIN = 0;
         difficulty.FISHING_INITIAL_DELAY_MAX = 2000;
@@ -67,14 +73,15 @@ function applyDifficulty() {
         difficulty.FISHING_GETAWAY_ACCURACY_MS = 1;
     }
     else if (difficulty.current === 2) { // Medium
+        difficulty.ALLOW_SOUND = true;
         difficulty.QTE_SOFTSTART = 0;
         difficulty.QTE_LUCKYCHANCE = getRandomInt(5, 10);
         difficulty.QTE_MIN = getRandomInt(2, 3);
         difficulty.QTE_MAX = getRandomInt(4, 6);
         difficulty.QTE_TYPES = [ 'lowNumbers', 'highNumbers', 'letters', 'math' ];
-        difficulty.QTE_LOWNUMBERS = 5;
-        difficulty.QTE_HIGHNUMBERS = 5;
-        difficulty.QTE_LETTERS = 8;
+        difficulty.QTE_LOWNUMBERS = 8;
+        difficulty.QTE_HIGHNUMBERS = 8;
+        difficulty.QTE_LETTERS = 5;
         difficulty.QTE_MATH_CHANCE = 20;
         difficulty.QTE_MATH_MIN = getRandomInt(2, 6);
         difficulty.QTE_MATH_MAX = getRandomInt(5, 10);
@@ -85,6 +92,7 @@ function applyDifficulty() {
         difficulty.CAST_SPEEDUP = 0.15;
         difficulty.CAST_TOPWAIT = getRandomInt(10, 30);
         difficulty.CAST_MAX_BONUS = 0.02;
+        difficulty.CAST_ALLOW_COLOR = true;
         difficulty.FISHING_INTERVAL = 800;
         difficulty.FISHING_INITIAL_DELAY_MIN = 500;
         difficulty.FISHING_INITIAL_DELAY_MAX = 3000;
@@ -97,6 +105,7 @@ function applyDifficulty() {
         difficulty.FISHING_GETAWAY_ACCURACY_MS = 2;
     }
     else if (difficulty.current === 1) { // Easy
+        difficulty.ALLOW_SOUND = true;
         difficulty.QTE_SOFTSTART = getRandomInt(0, 1);
         difficulty.QTE_LUCKYCHANCE = 10;
         difficulty.QTE_MIN = 2;
@@ -109,12 +118,13 @@ function applyDifficulty() {
         difficulty.QTE_MATH_MIN = getRandomInt(1, 3);
         difficulty.QTE_MATH_MAX = getRandomInt(3, 7);
         difficulty.QTE_INTERVAL = 150;
-        difficulty.QTE_STEP = 0.02;
+        difficulty.QTE_STEP = 0.05;
         difficulty.CAST_INTERVAL = 1;
         difficulty.CAST_STEP = 0.52;
         difficulty.CAST_SPEEDUP = 0.1;
         difficulty.CAST_TOPWAIT = 35;
         difficulty.CAST_MAX_BONUS = 0.05;
+        difficulty.CAST_ALLOW_COLOR = true;
         difficulty.FISHING_INTERVAL = 800;
         difficulty.FISHING_INITIAL_DELAY_MIN = 500;
         difficulty.FISHING_INITIAL_DELAY_MAX = 3000;
@@ -124,9 +134,10 @@ function applyDifficulty() {
         difficulty.FISHING_WAIT_CAP = 9000;
         difficulty.FISHING_GETAWAY_MIN = 1000;
         difficulty.FISHING_GETAWAY_MAX = 2000;
-        difficulty.FISHING_GETAWAY_ACCURACY_MS = 2.5;
+        difficulty.FISHING_GETAWAY_ACCURACY_MS = 3;
     }
     else { // Kids
+        difficulty.ALLOW_SOUND = true;
         difficulty.QTE_SOFTSTART = 2;
         difficulty.QTE_LUCKYCHANCE = getRandomInt(10, 15);
         difficulty.QTE_MIN = 1;
@@ -145,6 +156,7 @@ function applyDifficulty() {
         difficulty.CAST_SPEEDUP = 0;
         difficulty.CAST_TOPWAIT = 60;
         difficulty.CAST_MAX_BONUS = 0.1;
+        difficulty.CAST_ALLOW_COLOR = true;
         difficulty.FISHING_INTERVAL = 800;
         difficulty.FISHING_INITIAL_DELAY_MIN = 500;
         difficulty.FISHING_INITIAL_DELAY_MAX = 3000;
@@ -164,6 +176,30 @@ function applyDifficulty() {
     
     // Also reset our QTE count to re-enable soft start (if available)
     qteCount = 0;
+    
+    if (showFish) {
+        // Add more fish to show our difficulty
+        var shack = document.getElementById('shack');
+        if (shack) {
+            var currentFish = document.getElementsByClassName('hangingFish');
+            if (currentFish && currentFish.length > 0) {
+                while (currentFish.length) {
+                    deleteChild(currentFish[0]);
+                }
+            }
+            
+            if (difficulty.current > 0) {
+                for (var j = 0; j < difficulty.current; j++) {
+                    var fish = applyLandObject('./images/hanging_fish.png', 11);
+                    fish.className += ' hangingFish';
+                    
+                    // Unfortunately have to hardcode our position to line up with the shack
+                    fish.style.top = 70 - (j * 10) + 'px';
+                    fish.style.left = 70 - (j * 1) + 'px';
+                }
+            }
+        }
+    }
     
     // Log for any interested users to see
     console.log("Difficulty Settings", difficulty);

@@ -12,7 +12,6 @@ html, body {
 }
 
 body {
-    background: linear-gradient(to right, #0048A0, #002758);
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -21,7 +20,7 @@ body {
     user-select: none;
 }
 
-button {
+.takeButton {
     opacity: 1;
     font: inherit;
     cursor: pointer;
@@ -32,41 +31,17 @@ button {
     text-decoration: none;
     height: 50px;
     margin: 2px 0;
-    padding: 0.5em 1em;
+    padding: 0.2em 1em 0.5em 1em;
     border: outset 2px transparent;
     border-radius: 4px;
     color: black;
     background-color: goldenrod;
 }
 
-button:hover {
+.takeButton:hover {
     border-color: #FFEAB8;
     text-shadow: 0 0 10px white;
     filter: brightness(110%);
-}
-
-input[type='radio'],
-input[type='checkbox']{
-    -ms-transform: scale(1.5);
-    -moz-transform: scale(1.5);
-    -webkit-transform: scale(1.5);
-    -o-transform: scale(1.5);
-    transform: scale(1.5);
-    margin: 5px 7px 5px 12px;
-}
-
-fieldset {
-    white-space: nowrap;
-    width: 100%;
-    margin: 10px auto 10px auto;
-    font-size: 0.9em;
-}
-
-legend {
-    font-size: 1.1em;
-    text-shadow: 2px 2px #444444;
-    text-align: center;
-    color: #00AA00;
 }
 
 .center {
@@ -112,7 +87,7 @@ legend {
 }
 
 .water {
-    background-color: #002758;
+    background-color: #0048A0;
     background-image: url('../images/base/BFWwatertiles.gif');
     cursor: crosshair;
 }
@@ -161,24 +136,53 @@ legend {
     z-index: 30;
     font-size: 16px;
     font-weight: bold;
-    color: white;
+    color: #DDDDDD;
     text-shadow: 0 0 10px black;
     text-align: center;
 }
 
-.qte {
+.qte, .trophy {
     position: absolute;
-    top: 2.5%;
-    left: 2.5%;
-    font-family: 'CarpalTunnel';
-    width: 95%;
     max-height: calc(95% - 40px);
-    background: linear-gradient(#0048A0, #002758);
-    border: 5px solid #0071FF;
-    border-radius: 15px;
     z-index: 125;
     text-align: center;
     overflow-y: auto;
+}
+
+.qte {
+    top: 2.5%;
+    left: 2.5%;
+    width: 95%;
+    background: linear-gradient(#0048A0, #002758);
+    border: 5px solid #0071FF;
+    border-radius: 15px;
+}
+
+.trophy {
+    width: auto;
+    padding: 25px 35px 20px 35px;
+    color: white;
+    font-size: 24px;
+	background-image: url('../images/wood_mount.png');
+	background-repeat: repeat;
+	border: 8px outset #8A6445;
+}
+
+.trophyImg {
+    border: 2px solid black;
+    border-radius: 5px;
+    margin: 20px 0 25px 0;
+}
+
+.trophyHook {
+    max-height: 40px;
+    float: right;
+    padding-left: 10px;
+    margin-top: -2px;
+}
+
+.qte {
+    font-family: 'CarpalTunnel';
 }
 
 .qteText, .qteTip {
@@ -207,6 +211,68 @@ legend {
     background-color: white;
 }
 
+.scoreboard {
+    position: absolute;
+    z-index: 105;
+    left: 100px; /* Reliant on shack sizing */
+    top: 10px;
+    width: 220px;
+    background-color: #DDDDDD;
+    border-radius: 10px;
+    box-shadow: 0 0 15px 5px rgba(0,0,0,0.5);
+    padding: 10px;
+    opacity: 0.9;
+}
+
+.scoreNum {
+    font-weight: bold;
+}
+
+.nightOverlay {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 500;
+    font-size: 80px;
+    padding-top: 80px;
+    font-weight: bold;
+    text-shadow: 0 0 5px white;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    color: yellow;
+    background-repeat: repeat;
+    background-image: url('../images/night.gif');
+    background-color: black;
+    opacity: 0;
+    transition: opacity 1.5s;
+}
+
+.nightRetire {
+    background-image: none;
+    background-color: black;
+    color: #0071FF;
+    text-shadow: none;
+}
+
+.nightEarn {
+    font-size: 30px;
+    padding-top: 30px;
+}
+
+.retireMessage {
+    font-size: 60px;
+    font-weight: normal;
+}
+
+.retireImage {
+    border: 1px solid black;
+    border-radius: 50%;
+    margin-top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 /** backgroundObject - short name because we use a ton of them */
 .bo, .wo {
     position: absolute;
@@ -225,7 +291,6 @@ legend {
     width: 1px;
     background-color: #DDDDDD;
     z-index: 80;
-    box-shadow: 0 0 5px black;
 }
 
 .snowflake {
@@ -236,3 +301,27 @@ legend {
 }
 
 @-webkit-keyframes snowflakes-fall{0%{top:-10%}100%{top:100%}}@-webkit-keyframes snowflakes-shake{0%{-webkit-transform:translateX(0px);transform:translateX(0px)}50%{-webkit-transform:translateX(80px);transform:translateX(80px)}100%{-webkit-transform:translateX(0px);transform:translateX(0px)}}@keyframes snowflakes-fall{0%{top:-10%}100%{top:100%}}@keyframes snowflakes-shake{0%{transform:translateX(0px)}50%{transform:translateX(80px)}100%{transform:translateX(0px)}}.snowflake{position:fixed;top:-10%;z-index:9999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;cursor:default;-webkit-animation-name:snowflakes-fall,snowflakes-shake;-webkit-animation-duration:10s,3s;-webkit-animation-timing-function:linear,ease-in-out;-webkit-animation-iteration-count:infinite,infinite;-webkit-animation-play-state:running,running;animation-name:snowflakes-fall,snowflakes-shake;animation-duration:10s,3s;animation-timing-function:linear,ease-in-out;animation-iteration-count:infinite,infinite;animation-play-state:running,running}.snowflake:nth-of-type(0){left:1%;-webkit-animation-delay:0s,0s;animation-delay:0s,0s}.snowflake:nth-of-type(1){left:10%;-webkit-animation-delay:1s,1s;animation-delay:1s,1s}.snowflake:nth-of-type(2){left:20%;-webkit-animation-delay:6s,.5s;animation-delay:6s,.5s}.snowflake:nth-of-type(3){left:30%;-webkit-animation-delay:4s,2s;animation-delay:4s,2s}.snowflake:nth-of-type(4){left:40%;-webkit-animation-delay:2s,2s;animation-delay:2s,2s}.snowflake:nth-of-type(5){left:50%;-webkit-animation-delay:8s,3s;animation-delay:8s,3s}.snowflake:nth-of-type(6){left:60%;-webkit-animation-delay:6s,2s;animation-delay:6s,2s}.snowflake:nth-of-type(7){left:70%;-webkit-animation-delay:2.5s,1s;animation-delay:2.5s,1s}.snowflake:nth-of-type(8){left:80%;-webkit-animation-delay:1s,0s;animation-delay:1s,0s}.snowflake:nth-of-type(9){left:90%;-webkit-animation-delay:3s,1.5s;animation-delay:3s,1.5s}
+
+.shake {
+    animation: shake 2s infinite cubic-bezier(.36,.07,.19,.97) both;
+    animation-delay: 3s;
+    transform: translate3d(0, 0, 0);
+}
+
+@keyframes shake {
+    10%, 90% {
+        transform: translate3d(-1px, 0, 0);
+    }
+    
+    20%, 80% {
+        transform: translate3d(1px, 0, 0);
+    }
+    
+    30%, 50%, 70% {
+        transform: translate3d(-1px, -1px, 0);
+    }
+    
+    40%, 60% {
+        transform: translate3d(1px, 1px, 0);
+    }
+}

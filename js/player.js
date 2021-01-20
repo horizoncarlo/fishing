@@ -1,17 +1,22 @@
+var DEFAULT_BAIT = 10;
 var currentCast = {
     castInterval: null,
     castMultiplicator: 1,
     x: 0,
     y: 0,
-    accuracy: 0
+    accuracy: 0,
 };
 var player = {
+    day: 1,
+    bait: DEFAULT_BAIT,
+    caught: 0,
+    money: 0,
+    totalCaught: 0,
     avatar: {},
-    // name, div, img, bobber, castBar, boat, pier, island
+    // div, img, bobber, castBar, boat, pier, island
 };
 
 function initPlayer() {
-    player.name = getRandomName();
     player.avatar = {
         idle: './images/player/idle.gif',
         move: './images/player/move.gif',
@@ -25,13 +30,15 @@ function initPlayer() {
     player.div.id = 'player';
     player.div.title = 'Click to cancel your current line';
     player.div.style.position = 'absolute';
+    player.div.style.left = '30px'; // Start outside the hut, but we'll quickly move to our starting location
+    player.div.style.top = '60px';
     player.div.style.zIndex = 100;
     player.div.style.width = player.avatar.width;
     player.div.style.height = player.avatar.height;
     
     // Reel in any line if we have one out when we click on our player
     player.div.addEventListener('click', function(e) {
-        stopFishing();
+        stopFishing(true);
     });
     
     var image = document.createElement('img');
@@ -44,6 +51,74 @@ function initPlayer() {
     // Setup some other elements for future use
     initBobber();
     initCastBar();
+    
+    updateScoreboard();
+}
+
+function retirePlayer(button) {
+    // If we already have a night up ignore this, as they could be spamming Spacebar on the Retire button
+    if (document.getElementById('night')) {
+        return;
+    }
+    
+    // If the player has never caught anything just retire them instantly
+    if (player.totalCaught <= 0 && player.caught <= 0) {
+        stopFishing(true);
+        resetAndReload();
+        return;
+    }
+    
+    // Confirm with the player
+    // This will change the text of the button and abort the process
+    // If the user clicks again then the process will continue
+    // Otherwise if they do something else (like fish) the button will reset automatically as part of the scoreboard updating
+    if (button && button.innerHTML === 'Retire') {
+        button.innerHTML = 'Confirm!';
+        return;
+    }
+    
+    // Cancel any fishing
+    stopFishing(true);
+    
+    // Calculate any extra current earnings for retirement
+    // No need to update the scoreboard as we just display on the final screen then clear
+    player.money += calculateEarned();
+    
+    // Show the twilight of their years
+    var night = document.createElement('div');
+    night.id = 'night';
+    night.className = 'nightOverlay nightRetire';
+    night.style.opacity = 0;
+    var closeText = document.createElement('div');
+    closeText.className = 'retireMessage';
+    closeText.innerHTML = 'You retire with <b style="color: goldenrod;">$' + Number(player.money).toLocaleString() + '</b> from <b>' + Number(player.totalCaught).toLocaleString() + '</b> fish after <b>' + Number(player.day).toLocaleString() + '</b> day' + (player.day !== 1 ? 's' : '') + '...';
+    var retireImg = document.createElement('img');
+    retireImg.className = 'retireImage';
+    retireImg.src = './images/retirement.jpg';
+    night.appendChild(closeText);
+    night.appendChild(retireImg);
+    addChild(night);
+    
+    // Fade in the night sky
+    setTimeout(function() {
+        night.style.opacity = 1;
+    }, 10);
+    
+    // Reset our values, store them, and refresh the page
+    setTimeout(function() {
+        resetAndReload();
+    }, 7000);
+}
+
+function resetAndReload() {
+    player.day = 1;
+    player.bait = DEFAULT_BAIT;
+    player.caught = 0;
+    player.money = 0;
+    player.totalCaught = 0;
+    updateScoreboard();
+        
+    location.reload();
 }
 
 function initBobber() {
@@ -86,6 +161,12 @@ function initCastBar() {
  * After we have clicked to fish we need to charge up our line, then cast it
  */
 function clickToFish(e) {
+    // If we have our trophy dialog open just close it
+    if (isTrophyVisible()) {
+        hideTrophy();
+        return;
+    }
+    
     // Determine if we have a hit, if so reel it in
     // Otherwise clean up any old line and progress
     if (!hasHit) {
@@ -148,9 +229,17 @@ function clickToFish(e) {
 }
 
 function startCastBar(x, y) {
-    // TODO Need to account for cast origin being right near the edge of the screen, and make sure bar doesn't go off
-    
     if (player.castBar) {
+        // Check if we have bait left to use
+        // If not we start a new day and reload
+        if (player.bait-1 < 0) {
+            newDay();
+            return;
+        }
+        
+        // Use a bait
+        incrementScoreboard(-1);
+        
         currentCast.x = x;
         currentCast.y = y;
         currentCast.castMultiplicator = 1; // Filling up
@@ -234,8 +323,26 @@ function stopCastBar() {
 
 function showCastBar() {
     if (player.castBar) {
+        // Set our initial position based on where the cast is
         player.castBar.style.top = currentCast.y - (player.castBar.getBoundingClientRect().height/2) + 'px';
         player.castBar.style.left = currentCast.x - (player.castBar.getBoundingClientRect().width/2) + 'px';
+        
+        // Need to account for the cast bar being off the right/top/bottom of the screen
+        var heightPad = player.castBar.getBoundingClientRect().height;
+        var widthPad = player.castBar.getBoundingClientRect().width;
+        heightPad += heightPad * 0.2;
+        widthPad += widthPad * 0.1;
+        if (parseInt(player.castBar.style.top) < 5) {
+            player.castBar.style.top = '5px';
+        }
+        else if (parseInt(player.castBar.style.top) > (getDocumentHeight()-heightPad)) {
+            player.castBar.style.top = getDocumentHeight()-heightPad + 'px';
+        }
+        if (parseInt(player.castBar.style.left) > (getDocumentWidth()-widthPad)) {
+            player.castBar.style.left = getDocumentWidth()-widthPad + 'px';
+        }
+        
+        // Then show our bar
         player.castBar.style.visibility = 'visible';
     }
 }
@@ -258,11 +365,15 @@ function clearFishingLine() {
 }
 
 function highlightFishingLine() {
-    colorFishingLine('red');
+    if (difficulty.CAST_ALLOW_COLOR) {
+        colorFishingLine('red');
+    }
 }
 
 function unhighlightFishingLine() {
-    colorFishingLine('#DDDDDD');
+    if (difficulty.CAST_ALLOW_COLOR) {
+        colorFishingLine('#DDDDDD');
+    }
 }
 
 function colorFishingLine(color) {
