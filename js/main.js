@@ -275,20 +275,23 @@ function handleCaughtFish() {
     var caughtFish = getRandomFish();
     var filterHue = Math.random() <= 0.35 ? 0 : getRandomInt(1, 360);
     trophy.innerHTML = 'You caught a <b>' + caughtFish.name + '</b><br/>' +
-                       '<img src="' + caughtFish.path + '" class="trophyImg"' +
+                       '<img onload="resizeTrophy()"' + 
+                       '     src="' + caughtFish.path + '" class="trophyImg"' +
                        '     style="filter: hue-rotate(' + filterHue + 'deg); max-width: ' + Math.floor(getDocumentWidth()-100) + 'px; max-height: ' + Math.floor(getDocumentHeight()-300) + 'px;"/>' +
                        '<br/>' +
                        '<button onclick="hideTrophy()" class="takeButton"><img src="./images/hook.png" class="trophyHook shake"/>&nbsp;Take</button>';
-    
-    // Some timeout shenanigans, primarily so that our bounding client rect is ready
-    // And also the visibility won't flicker from the top of the page to it's position
-    setTimeout(function() {
+}
+
+function resizeTrophy() {
+    var trophy = document.getElementById('trophy');
+    if (trophy) {
         trophy.style.top = (getDocumentHeight() - trophy.getBoundingClientRect().height)/2 + 'px';
         trophy.style.left = (getDocumentWidth() - trophy.getBoundingClientRect().width)/2 + 'px';
+        
         setTimeout(function() {
             trophy.style.visibility = 'visible';
         }, 0);
-    }, 50);
+    }
 }
 
 function hideTrophy() {
