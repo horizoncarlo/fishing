@@ -49,10 +49,17 @@ function initPlayer() {
     addChild(player.div);
     
     // Setup some other elements for future use
+    initBarrel();
     initBobber();
     initCastBar();
-    
     updateScoreboard();
+    
+    // Initial help message
+    if (player.day <= 1) {
+        setTimeout(function() {
+            showLongMessage('For options left/right click your shack');
+        }, 1000);
+    }
 }
 
 function retirePlayer(button) {
@@ -121,6 +128,31 @@ function resetAndReload() {
     location.reload();
 }
 
+function initBarrel() {
+    var barrel = document.createElement('img');
+    barrel.id = 'barrel';
+    barrel.className = 'barrel';
+    barrel.style.display = 'none';
+    addChild(barrel);
+}
+
+function updateBarrelImage() {
+    var barrel = document.getElementById('barrel');
+    if (barrel) {
+        if (player.caught > 0) {
+            barrel.src = './images/barrel-fish.png';
+        }
+        else {
+            barrel.src = './images/barrel-empty.png';
+        }
+        
+        // Place the barrel slightly behind the player
+        barrel.style.top = parseInt(player.div.style.top) + (parseInt(player.avatar.height)/2) + 'px';
+        barrel.style.left = parseInt(player.div.style.left) - (parseInt(player.avatar.width)/2) + 'px';
+        barrel.style.display = 'block';
+    }
+}
+
 function initBobber() {
     var bobber = document.createElement('img');
     bobber.className = 'bobber';
@@ -173,7 +205,7 @@ function clickToFish(e) {
         stopFishing();
         
         // If we have an existing cast bar the click should lock in our current cast accuracy
-        if (player.castBar && player.castBar && player.castBar.style.visibility === 'visible') {
+        if (player.castBar && player.castBar.style.visibility === 'visible') {
             stopCastBar();
             
             // Round our cast accuracy
@@ -220,6 +252,9 @@ function clickToFish(e) {
         setHookAnimation();
         showQTE();
     }
+    
+    // Hide our menu if we can
+    closeShackMenu();
     
     // Clear any helper timer once we've fished once
     if (helperTimeout) {
@@ -513,20 +548,26 @@ function putPlayerOnHome() {
     }
     // Boat or Shore or Island
     else {
+        var removeBarrel = false;
         var removePier = false;
         var removeBoat = false;
+        // Island
         if (player.island) { // Set randomly in setup.js, so not always what we do
             removeBoat = true;
+            removeBarrel = true;
             player.div.style.top = player.island.getBoundingClientRect().top + (ISLAND_HEIGHT/4) + 'px';
             player.div.style.left = player.island.getBoundingClientRect().left + (ISLAND_WIDTH/2) + 'px';
         }
+        // Boat
         else if (player.boat && Math.random() > 0.3) {
             player.div.style.top = player.boat.getBoundingClientRect().top - (BOAT_HEIGHT/3) + 'px';
             player.div.style.left = player.boat.getBoundingClientRect().left + (BOAT_WIDTH/3) + 'px';
         }
+        // Shore
         else {
             removePier = true;
             removeBoat = true;
+            removeBarrel = true;
             player.div.style.top = getRandomInt(50, getDocumentHeight()-50) + 'px';
             player.div.style.left = LAND_WIDTH - 10 + 'px';
         }
@@ -534,6 +575,9 @@ function putPlayerOnHome() {
         // Remove our pier and boat if necessary, such as being on the shore or island
         if (removePier && player.pier) {
             deleteChild(player.pier);
+        }
+        if (removeBarrel && document.getElementById('barrel')) {
+            deleteChild(document.getElementById('barrel'));
         }
         if (removeBoat && player.boat) {
             deleteChild(player.boat);
@@ -563,7 +607,7 @@ function highlightPlayer() {
         arrow.style.opacity = 0;
         setTimeout(function() {
             deleteChild(arrow);
-        }, 3000);
+        }, 3100);
     }, 3000);
 }
 

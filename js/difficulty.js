@@ -43,7 +43,7 @@ function applyDifficulty(showFish) {
     if (difficulty.current === 3) { // Hard
         difficulty.ALLOW_SOUND = false;
         difficulty.QTE_SOFTSTART = 0;
-        difficulty.QTE_LUCKYCHANCE = 1;
+        difficulty.QTE_LUCKYCHANCE = 5;
         difficulty.QTE_MIN = getRandomInt(3, 4);
         difficulty.QTE_MAX = getRandomInt(7, 9);
         difficulty.QTE_TYPES = [ 'lowNumbers', 'highNumbers', 'letters', 'math' ];
@@ -68,7 +68,7 @@ function applyDifficulty(showFish) {
         difficulty.FISHING_BASE_CHANCE = 0.05;
         difficulty.FISHING_HELP_CHANCE = 0.01;
         difficulty.FISHING_WAIT_CAP = 0;
-        difficulty.FISHING_GETAWAY_MIN = 300;
+        difficulty.FISHING_GETAWAY_MIN = 350;
         difficulty.FISHING_GETAWAY_MAX = getRandomInt(800, 1000);
         difficulty.FISHING_GETAWAY_ACCURACY_MS = 1;
     }
@@ -78,7 +78,10 @@ function applyDifficulty(showFish) {
         difficulty.QTE_LUCKYCHANCE = getRandomInt(5, 10);
         difficulty.QTE_MIN = getRandomInt(2, 3);
         difficulty.QTE_MAX = getRandomInt(4, 6);
-        difficulty.QTE_TYPES = [ 'lowNumbers', 'highNumbers', 'letters', 'math' ];
+        difficulty.QTE_TYPES = [ 'lowNumbers', 'highNumbers', 'math' ];
+        if (Math.random() >= 0.4) {
+            difficulty.QTE_TYPES.push('letters');
+        }
         difficulty.QTE_LOWNUMBERS = 8;
         difficulty.QTE_HIGHNUMBERS = 8;
         difficulty.QTE_LETTERS = 5;
@@ -118,7 +121,7 @@ function applyDifficulty(showFish) {
         difficulty.QTE_MATH_MIN = getRandomInt(1, 3);
         difficulty.QTE_MATH_MAX = getRandomInt(3, 7);
         difficulty.QTE_INTERVAL = 150;
-        difficulty.QTE_STEP = 0.05;
+        difficulty.QTE_STEP = 0.5;
         difficulty.CAST_INTERVAL = 1;
         difficulty.CAST_STEP = 0.52;
         difficulty.CAST_SPEEDUP = 0.1;
@@ -150,7 +153,7 @@ function applyDifficulty(showFish) {
         difficulty.QTE_MATH_MIN = 1;
         difficulty.QTE_MATH_MAX = getRandomInt(1, 3)+1;
         difficulty.QTE_INTERVAL = 150;
-        difficulty.QTE_STEP = 0.01;
+        difficulty.QTE_STEP = 0.02;
         difficulty.CAST_INTERVAL = 1;
         difficulty.CAST_STEP = 0.5;
         difficulty.CAST_SPEEDUP = 0;

@@ -57,24 +57,39 @@ function deleteChild(child) {
     document.getElementById('game').removeChild(child);
 }
 
-function showMessage(text) {
+function showLongMessage(text) {
+    showMessage(text, true);
+}
+
+/**
+ * Show a floating message above the player's head
+ * Pass 'longer' as true to have the message be a bit slower
+ */
+function showMessage(text, longer) {
     console.log(text);
     
+    var longerMod = 0;
     var message = document.createElement('div');
     message.innerHTML = text;
     message.className = 'message';
-    message.style.setProperty('--start', parseInt(player.image.getBoundingClientRect().top) - 10 + 'px');
-    message.style.left = player.div.getBoundingClientRect().left + 'px';
+    message.style.setProperty('--start', parseInt(player.image.getBoundingClientRect().top) - 12 + 'px');
+    message.style.left = player.div.getBoundingClientRect().left - (text.length * 2) + 'px';
     message.style.opacity = 1;
     addChild(message);
     
+    // If we want a longer message add some bonus time, and also slow down the animation
+    if (longer) {
+        message.style.animationDuration = '10s';
+        longerMod = 2000;
+    }
+    
     setTimeout(function() {
         message.style.opacity = 0;
-    }, 50);
+    }, (50 + longerMod));
     
     setTimeout(function() {
         deleteChild(message);
-    }, 4000);
+    }, (4000 + longerMod));
 }
 
 /**
@@ -85,6 +100,12 @@ function calculateEarned() {
     for (var i = 0; i < player.caught; i++) {
         toReturn += getRandomInt(9, 14);
     }
+    
+    // Add a net bonus for what day it is
+    if (toReturn > 0) {
+        toReturn += player.day;
+    }
+    
     return toReturn;
 }
 
@@ -168,6 +189,7 @@ function getRandomFish(recursion) {
     var folder = getRandomFishFolder();
     if (folder === 'florida') {
         fishes = [
+			'Angelfish.png',
 			'Atlantic-Trumpetfish.png',
 			'Balloonfish.png',
 			'Banded-Butterflyfish.png',
@@ -176,31 +198,26 @@ function getRandomFish(recursion) {
 			'Bigeye.png',
 			'Black-Grouper.png',
 			'Blacktip-Shark.png',
-			'Blue-Angelfish.png',
-			'Blue-Chromis.png',
-			'Blue-Parrotfish.png',
-			'Blue-Tang.png',
 			'Candy-Basslet.png',
+			'Chromis.png',
 			'Cottonwick.png',
 			'Flamefish.png',
 			'Foureye-Butterflyfish.png',
 			'Goliath-Grouper.png',
-			'Gray-Angelfish.png',
 			'Great-Barracuda.png',
-			'Green-Moray.png',
 			'Hogfish.png',
+			'Lionfish.png',
+			'Lizardfish.png',
 			'Midnight-Parrotfish.png',
+			'Moray-Eel.png',
 			'Nassau-Grouper.png',
 			'Neon-Goby.png',
 			'Nurse-Shark.png',
 			'Ocellated-Frogfish.png',
-			'Orangespotted-Filefish.png',
 			'Peacock-Flounder.png',
 			'Porkfish.png',
 			'Queen-Triggerfish.png',
 			'Rainbow-Parrotfish.png',
-			'Red-Lionfish.png',
-			'Red-Lizardfish.png',
 			'Reef-Butterflyfish.png',
 			'Reef-Shark.png',
 			'Reef-Silverside.png',
@@ -209,13 +226,17 @@ function getRandomFish(recursion) {
 			'Scrawled-Filefish.png',
 			'Sergeant-Major.png',
 			'Sharpnose-Puffer.png',
+			'Slamnose-Parrotfish.png',
 			'Southern-Stingray.png',
 			'Spanish-Grunt.png',
 			'Spotfin-Hogfish.png',
+			'Spotted-Angelfish.png',
 			'Spotted-Drum.png',
 			'Spotted-Eagle-Ray.png',
+			'Spotted-Filefish.png',
 			'Spotted-Moray-Eel.png',
 			'Spotted-Scorpionfish.png',
+			'Tang.png',
 			'Tarpon.png',
 			'Tiger-Grouper.png',
 			'Tobaccofish.png',
@@ -224,7 +245,7 @@ function getRandomFish(recursion) {
     }
     else if (folder === 'outer-banks') {
         fishes = [
-            'Blue-Marlin.png',
+            'Marlin.png',
             'Sailfish.png'
         ];
     }

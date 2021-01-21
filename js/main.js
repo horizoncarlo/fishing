@@ -1,14 +1,13 @@
 /*
 TODO:
-- Mouseover brightness filter on fish trophy image, also make it clickable the same as Take button?
+- Add fisherwoman animation
 - Go through and double check all our z-indexes. Space them out a bit more too, and perhaps compile a list
-- Get some more movement on the screen. Little crabs or lizards scurrying on land, a gentle bob/rock to the boat/pier, etc.
 - Add rain effect (https://codepen.io/arickle/pen/XKjMZY) instead of current snowflakes
 - Add a basic help system of an animated bird (somewhere on land) who you can click and will give you tips and explain game mechanics (like "re-cast after you miss a fish")?
 -- Speaking of birds should the flying ones we have just be the tip system? Simple and elegant...or they could give bait
-- Have difficulty (and money reward) increase by a factor of what day it is?
-- Add more/different QTE events? Spamming the mouse scroll wheel could be interesting as it'd feel like reeling a fish in
+- Add more/different QTE events? Spamming the mouse scroll wheel could be interesting for the kids as it'd feel like reeling a fish in
 -- So pretty much 'qte.onwheel = func' in 'showQTE'
+- Replace boat and pier with animated images that have a gentle bob/sway?
 
 UNLIKELY:
 - Fish splashes in the water every so often, with a bonus to rarity/ease of catch if you cast right on the spot
@@ -17,7 +16,7 @@ UNLIKELY:
 -- Takes away from the purity of the game and has the same downsides as splashes
 - Possibly have a "Barter" (or similar) button the night screen to re-roll your earnings?
 -- Better for pacing to have night be a time to chill instead of mash a button
-- Expand fishing shack settings to a full menu?
+- Expand fishing shack right-click menu with more options?
 -- Buy fishing rod upgrades? Like more power, slow charge (so easier to get perfect), etc.
 -- Could choose/buy your bait for a certain subset of fishes (basically 1 poster each) at the start of the day?
 --- Basically a lot of work for not a lot of payoff when the target audience is kids
@@ -198,40 +197,41 @@ function cancelFishingTimers() {
 }
 
 function gotHit() {
+    // Flag our hit
+    hasHit = true;
+    
+    // Notify the player visually
+    showMessage('Hit!');
+    if (player.bobber) {
+        player.bobber.src = './images/bobber_caught.gif';
+    }
+    highlightFishingLine();
+    if (typeof beep !== 'undefined' && difficulty.ALLOW_SOUND) {
+        beep.play();
+    }
+    
     // Once we get a hit, revert to our base chance
     // This DOESN'T factor in Accuracy, because if the player misses their hit they should recast
     // This only really matters if they don't try to reel the fish in, and just let it pass
     currentChance = difficulty.FISHING_BASE_CHANCE;
+    
+    // Determine how long until the fish gets away
+    // Accuracy is a factor here, giving us a flat bonus milliseconds per 1% Accuracy
+    setTimeout(function() {
+        var getawayDelay = getRandomInt(difficulty.FISHING_GETAWAY_MIN, difficulty.FISHING_GETAWAY_MAX);
+        if (difficulty.FISHING_GETAWAY_ACCURACY_MS > 0) {
+            getawayDelay += (currentCast.accuracy * difficulty.FISHING_GETAWAY_ACCURACY_MS);
+        }
+        getawayTimeout = setTimeout(function() {
+            gotAway();
+        }, getawayDelay);
+    }, 0);
     
     // Stop our guaranteed timer as it's just for one hit
     if (guaranteedTimeout) {
         clearTimeout(guaranteedTimeout);
         guaranteedTimeout = null;
     }
-    
-    // Flag our hit
-    hasHit = true;
-    
-    // Notify the player visually
-    if (player.bobber) {
-        player.bobber.src = './images/bobber_caught.gif';
-    }
-    highlightFishingLine();
-    if (beep && difficulty.ALLOW_SOUND) {
-        beep.play();
-    }
-    showMessage('Hit!');
-    
-    // Determine how long until the fish gets away
-    // Accuracy is a factor here, giving us a flat bonus milliseconds per 1% Accuracy
-    var getawayDelay = getRandomInt(difficulty.FISHING_GETAWAY_MIN, difficulty.FISHING_GETAWAY_MAX);
-    if (difficulty.FISHING_GETAWAY_ACCURACY_MS > 0) {
-        getawayDelay += (currentCast.accuracy * difficulty.FISHING_GETAWAY_ACCURACY_MS);
-    }
-    
-    getawayTimeout = setTimeout(function() {
-        gotAway();
-    }, getawayDelay);
 }
 
 function gotAway() {
@@ -255,8 +255,9 @@ function gotAway() {
 }
 
 function handleCaughtFish() {
-    // Increment our catch
+    // Increment our catch and update our barrel
     incrementScoreboard(null, 1);
+    updateBarrelImage();
     
     // Stop fishing and show the catch
     stopFishing(true);
@@ -278,9 +279,11 @@ function handleCaughtFish() {
     var caughtFish = getRandomFish();
     var filterHue = Math.random() <= 0.35 ? 0 : getRandomInt(1, 360);
     trophy.innerHTML = 'You caught a <b>' + caughtFish.name + '</b><br/>' +
-                       '<img onload="resizeTrophy()"' + 
+                       '<img onload="resizeTrophy()"' +
+                       '     onclick="hideTrophy()"' +
                        '     src="' + caughtFish.path + '" class="trophyImg"' +
-                       '     style="filter: hue-rotate(' + filterHue + 'deg); max-width: ' + Math.floor(getDocumentWidth()-100) + 'px; max-height: ' + Math.floor(getDocumentHeight()-300) + 'px;"/>' +
+                       // We want some bright, colorful fish
+                       '     style="filter: hue-rotate(' + filterHue + 'deg) saturate(1.3); max-width: ' + Math.floor(getDocumentWidth()-100) + 'px; max-height: ' + Math.floor(getDocumentHeight()-300) + 'px;"/>' +
                        '<br/>' +
                        '<button onclick="hideTrophy()" class="takeButton"><img src="./images/hook.png" class="trophyHook shake"/>&nbsp;Take</button>';
 }
@@ -364,7 +367,9 @@ function showQTE() {
         
         var intervalMs = difficulty.QTE_INTERVAL;
         if (lightningRound) {
-            intervalMs /= 10;
+            var divisor = 7;
+            divisor -= (difficulty.current * -1);
+            intervalMs /= divisor;
         }
         
         qteInterval = setInterval(function() {
@@ -414,8 +419,16 @@ function updateQTEProgress() {
             if (!progress.style.width) {
                 progress.style.width = '100%';
             }
+            
+            // Give a slight bonus in lightning rounds to particularly high step counts
+            var step = difficulty.QTE_STEP;
+            if (lightningRound && step > 2) {
+                step /= 2;
+            }
+            
+            // Reduce our current width
             var currentWidth = parseInt(progress.style.width);
-            currentWidth -= difficulty.QTE_STEP;
+            currentWidth -= step;
             
             if (currentWidth <= 20) {
                 progress.style.backgroundColor = 'red';
@@ -472,11 +485,10 @@ function makeQTEPuzzle() {
         var count = getRandomInt(minlength, maxlength);
         
         // Determine if we're doing a lightning round
-        // This can only happen on existing difficulties with a minimum QTE length of more than 1
-        // Then we use the minimum QTE - 1, but have much less time to solve
+        // The player has much less time but only needs a single QTE to solve
         if (difficulty.QTE_MIN > 1 && Math.random() > 0.95) {
             lightningRound = true;
-            count = difficulty.QTE_MIN-1;
+            count = 1;
         }
         
         for (var i = 0; i < count; i++) {
@@ -491,9 +503,10 @@ function makeQTEPuzzle() {
                 toReturn += getRandomLetter();
             }
             
-            // If we're lucky then replicate the value we just generated to our desired length
+            // If we're lucky then replicate the value we just generated to our desired length (plus 1 to make the spamming more fun)
             // Then return that value
             if (isLucky && toReturn[0]) {
+                count++;
                 var replicate = toReturn[0];
                 for (var lucky = i+1; lucky < count; lucky++) {
                     toReturn += replicate;
@@ -539,7 +552,7 @@ function incrementScoreboard(baitChange, caughtChange) {
         
         // Notify if we're down to our last bait
         if (player.bait === 0) {
-            showMessage('Last cast today');
+            showMessage('Last Cast Today');
         }
     }
     if (typeof caughtChange === 'number') {
