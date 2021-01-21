@@ -2,6 +2,10 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function getRandomFloat(min, max) {
+    return (Math.random() * (max - min)) + min;
+}
+
 function getRandomBoolean() {
     return Math.random() > 0.5;
 }
@@ -59,20 +63,17 @@ function showMessage(text) {
     var message = document.createElement('div');
     message.innerHTML = text;
     message.className = 'message';
-    message.style.top = parseInt(player.div.getBoundingClientRect().top) - 20 + 'px';
+    message.style.setProperty('--start', parseInt(player.image.getBoundingClientRect().top) - 10 + 'px');
     message.style.left = player.div.getBoundingClientRect().left + 'px';
     message.style.opacity = 1;
     addChild(message);
     
     setTimeout(function() {
-        message.style.top = '0px';
         message.style.opacity = 0;
     }, 50);
     
     setTimeout(function() {
-        if (message) {
-            deleteChild(message);
-        }
+        deleteChild(message);
     }, 4000);
 }
 
@@ -219,6 +220,12 @@ function getRandomFish(recursion) {
 			'Tiger-Grouper.png',
 			'Tobaccofish.png',
 			'Yellowtail-Snapper.png',
+        ];
+    }
+    else if (folder === 'outer-banks') {
+        fishes = [
+            'Blue-Marlin.png',
+            'Sailfish.png'
         ];
     }
     else {

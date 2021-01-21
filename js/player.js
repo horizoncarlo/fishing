@@ -554,7 +554,6 @@ function highlightPlayer() {
     var arrow = document.createElement('img');
     arrow.src = './images/arrow.gif';
     arrow.className = 'arrow';
-    arrow.style.position = 'relative';
     arrow.style.top = player.div.getBoundingClientRect().top - (parseInt(player.avatar.height, 10)/1.1) + 'px';
     arrow.style.left = player.div.getBoundingClientRect().left + 'px';
     addChild(arrow);

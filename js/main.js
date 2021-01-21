@@ -1,15 +1,14 @@
 /*
 TODO:
+- Mouseover brightness filter on fish trophy image, also make it clickable the same as Take button?
+- Go through and double check all our z-indexes. Space them out a bit more too, and perhaps compile a list
 - Get some more movement on the screen. Little crabs or lizards scurrying on land, a gentle bob/rock to the boat/pier, etc.
-- Add more/different QTE events? Spamming the mouse scroll wheel could be interesting as it'd feel like reeling a fish in
--- Basically 'qte.onwheel = func' in 'showQTE'
 - Add rain effect (https://codepen.io/arickle/pen/XKjMZY) instead of current snowflakes
-- Expand fishing shack settings to a full menu?
--- Buy fishing rod upgrades? Like more power, slow charge (so easier to get perfect), etc.
--- Could choose/buy your bait for a certain subset of fishes (basically 1 poster each) at the start of the day?
 - Add a basic help system of an animated bird (somewhere on land) who you can click and will give you tips and explain game mechanics (like "re-cast after you miss a fish")?
 -- Speaking of birds should the flying ones we have just be the tip system? Simple and elegant...or they could give bait
 - Have difficulty (and money reward) increase by a factor of what day it is?
+- Add more/different QTE events? Spamming the mouse scroll wheel could be interesting as it'd feel like reeling a fish in
+-- So pretty much 'qte.onwheel = func' in 'showQTE'
 
 UNLIKELY:
 - Fish splashes in the water every so often, with a bonus to rarity/ease of catch if you cast right on the spot
@@ -18,6 +17,10 @@ UNLIKELY:
 -- Takes away from the purity of the game and has the same downsides as splashes
 - Possibly have a "Barter" (or similar) button the night screen to re-roll your earnings?
 -- Better for pacing to have night be a time to chill instead of mash a button
+- Expand fishing shack settings to a full menu?
+-- Buy fishing rod upgrades? Like more power, slow charge (so easier to get perfect), etc.
+-- Could choose/buy your bait for a certain subset of fishes (basically 1 poster each) at the start of the day?
+--- Basically a lot of work for not a lot of payoff when the target audience is kids
 */
 
 var hasHit = false; // If we have a fish hit or not

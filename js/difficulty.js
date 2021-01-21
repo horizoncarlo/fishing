@@ -54,10 +54,10 @@ function applyDifficulty(showFish) {
         difficulty.QTE_MATH_MIN = getRandomInt(5, 8);
         difficulty.QTE_MATH_MAX = getRandomInt(10, 20);
         difficulty.QTE_INTERVAL = 150;
-        difficulty.QTE_STEP = getRandomInt(250, 400)/100;
+        difficulty.QTE_STEP = getRandomFloat(2.5, 4);
         difficulty.CAST_INTERVAL = 1;
-        difficulty.CAST_STEP = getRandomInt(80, 110)/100;
-        difficulty.CAST_SPEEDUP = getRandomInt(40, 50)/100;
+        difficulty.CAST_STEP = getRandomFloat(0.8, 1.1);
+        difficulty.CAST_SPEEDUP = getRandomFloat(0.4, 0.5);
         difficulty.CAST_TOPWAIT = 0;
         difficulty.CAST_MAX_BONUS = 0;
         difficulty.CAST_ALLOW_COLOR = Math.random() <= 0.8 ? false : true;
@@ -86,7 +86,7 @@ function applyDifficulty(showFish) {
         difficulty.QTE_MATH_MIN = getRandomInt(2, 6);
         difficulty.QTE_MATH_MAX = getRandomInt(5, 10);
         difficulty.QTE_INTERVAL = 150;
-        difficulty.QTE_STEP = getRandomInt(100, 250)/100;
+        difficulty.QTE_STEP = getRandomFloat(1, 2.5);
         difficulty.CAST_INTERVAL = 1;
         difficulty.CAST_STEP = 0.6;
         difficulty.CAST_SPEEDUP = 0.15;

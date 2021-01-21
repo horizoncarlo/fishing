@@ -7,6 +7,8 @@ var BOAT_WIDTH = 127;
 var BOAT_HEIGHT = 61;
 var ISLAND_HEIGHT = 96;
 var ISLAND_WIDTH = 96;
+var landColor = Math.random() <= 0.65 ? 'light' : 'dark'; // Base tileset for our land
+var waterBrightness = Math.random() <= 0.75 ? 1 : getRandomFloat(0.5, 2); // Brightness filter to apply to the water and some related objects
 
 /**
  * Primary entrypoint into the app from the onload of our body
@@ -60,6 +62,7 @@ function initLand() {
     var landDiv = document.createElement('div');
     landDiv.id = 'land';
     landDiv.className = 'land';
+    landDiv.style.backgroundImage = "url('./images/sand/" + landColor + "_base.png')";
     landDiv.style.width = LAND_WIDTH + 'px';
     
     // Add the pier
@@ -87,13 +90,13 @@ function initLand() {
     shack.style.height = '85px';
     shack.style.cursor = 'help';
     shack.style.zIndex = 10;
-    shack.style.backgroundImage = "url('./images/fishing_shack.png')"; // Set the door closed manually at first, to preload the image and prevent flicker later
+    shack.style.backgroundImage = "url('./images/shack.png')"; // Set the door closed manually at first, to preload the image and prevent flicker later
     shack.addEventListener('click', toggleDifficulty);
     addChild(shack);
     
     // Now open the shack door to draw attention to it, then close it after a similar time as our red arrow over the player
     setTimeout(function() {
-        shack.style.backgroundImage = "url('./images/fishing_shack-open.png')"; // Set the door open initially to draw attention to the shack
+        shack.style.backgroundImage = "url('./images/shack-open.png')"; // Set the door open initially to draw attention to the shack
     }, 0);
     setTimeout(function() {
         shack.style.backgroundImage = null;
@@ -103,7 +106,11 @@ function initLand() {
     var beachDiv = document.createElement('div');
     beachDiv.id = 'beach';
     beachDiv.className = 'beach';
+    beachDiv.style.backgroundImage = "url('./images/sand/" + landColor + "_edge.png')";
     beachDiv.style.left = LAND_WIDTH + 'px';
+    
+    // Potentially add a sun
+    initSun();
     
     // Put it all together
     addChild(pierDiv);
@@ -130,34 +137,73 @@ function initLandObjects() {
         }
     }
     
-    var fenceCount = 0;
+    // Have some beaches without shells, which will use a lot of grass/plants instead
+    // Also have a chance for tons of shells/plants
+    var noShells = Math.random() < 0.2;
+    var tonsLittle = Math.random() < 0.12;
+    if (tonsLittle) {
+        backgroundObjects *= 2;
+    }
+    
+    // Have a max cap on wall-like objects (aka fences or dunes)
+    // Normally we have a mixed version of both, but have a chance to have all of just one type, or none at all
+    var wallCount = 0;
+    var noWalls, allDunes, allFences;
+    noWalls = Math.random() <= 0.15;
+    if (!noWalls) {
+        allDunes = Math.random() <= 0.2;
+        if (!allDunes) {
+            allFences = Math.random() <= 0.2;
+        }
+    }
+    
     for (var backgroundLoop = 0; backgroundLoop < backgroundObjects; backgroundLoop++) {
         currentBackground = makeBackgroundObject(null, 'land');
         
-        if (Math.random() >= 0.2) {
-            if (Math.random() >= 0.15 || fenceCount >= 5) {
-                if (Math.random() >= 0.45) {
-                    currentBackground.src = './images/terrain/shell' + getRandomInt(1, 7) + '.png';
+        // Always put an alternative sand texture that matches our base color
+        applyLandObject('./images/sand/' + landColor + '_accent' + getRandomInt(1, 2) + '.png', 0);
+        applyLandObject('./images/sand/' + landColor + '_accent' + getRandomInt(1, 2) + '.png', 0);
+        
+        if (Math.random() >= 0.2 || (tonsLittle && Math.random() >= 0.12)) {
+            if (Math.random() >= 0.15 || wallCount >= 5) {
+                if (!noShells && Math.random() >= 0.42) {
+                    currentBackground.src = './images/terrain/shell' + getRandomInt(1, 15) + '.png';
                     currentBackground.style.transform = 'rotate(' + getRandomInt(10, 360) + 'deg)';
+                    // Shells are so small, so sometimes don't count them as an object
+                    if (Math.random() >= 0.75) {
+                        backgroundLoop--;
+                    }
                 }
-                else if (Math.random() >= 0.6) {
-                    currentBackground.src = './images/terrain/plant' + getRandomInt(1, 3) + '.png';
+                else if (Math.random() >= 0.58) {
+                    currentBackground.src = './images/terrain/plant' + getRandomInt(1, 5) + '.png';
+                    currentBackground.style.zIndex = 3;
                 }
                 else {
-                    currentBackground.src = './images/terrain/grass' + getRandomInt(1, 2) + '.png';
+                    currentBackground.src = './images/terrain/grass' + getRandomInt(1, 6) + '.png';
                 }
             }
-            else {
-                currentBackground.src = './images/terrain/fence.png';
+            else if (!noWalls) {
+                // Fence can be civilized (wooden structure) or a blown sand dune
+                if (allFences || (!allDunes && Math.random() <= 0.55)) {
+                    currentBackground.src = './images/terrain/fence.png';
+                }
+                else {
+                    currentBackground.src = './images/terrain/dune.png';
+                }
                 currentBackground.style.zIndex = 2;
-                fenceCount++;
+                wallCount++;
             }
         }
         // Major bigger terrain
         else {
-            currentBackground.src = './images/terrain/sand_patch.png';
+            if (Math.random() <= 0.4 && landColor === 'light') {
+                currentBackground.src = './images/terrain/blown.png';
+            }
+            else {
+                currentBackground.src = './images/terrain/sand_patch.png';
+                currentBackground.style.transform = 'rotate(' + getRandomInt(10, 360) + 'deg)';
+            }
             currentBackground.style.zIndex = 1;
-            currentBackground.style.transform = 'rotate(' + getRandomInt(10, 360) + 'deg)';
         }
         
         addChild(currentBackground);
@@ -186,8 +232,8 @@ function initLandObjects() {
     if (Math.random() > 0.8) {
         applyLandObject('./images/terrain/crater.png', 1, true);
     }
-    if (Math.random() > 0.3) {
-        applyLandObject('./images/terrain/bone' + getRandomInt(1, 2) + '.png', 3);
+    if (Math.random() > 0.35) {
+        applyLandObject('./images/terrain/bone' + getRandomInt(1, 4) + '.png', 3);
     }
     if (Math.random() > 0.8) {
         applyLandObject('./images/terrain/water_big' + getRandomInt(1, 2) + '.png', 1);
@@ -195,6 +241,7 @@ function initLandObjects() {
             applyLandObject('./images/terrain/water_big' + getRandomInt(1, 3) + '.png', 1);
         }
     }
+    // TODO Add an animated crab
     
     // Seasonal effects
     var isHalloween = (new Date().getMonth() === 9);
@@ -232,9 +279,20 @@ function initLandObjects() {
     }
 }
 
+function initSun() {
+    if (Math.random() >= 0.2) {
+        var sun = applyLandObject('./images/sun.gif', 60);
+        sun.id = 'sun';
+        sun.className += ' sun';
+        sun.style.left = 'auto';
+        sun.style.right = getRandomFloat(0, 5) + '%';
+        sun.style.top = getRandomFloat(0, 5) + '%';
+    }
+}
+
 function initBirds() {
     // First make a bird right away, then start it on an interval
-    makeBird(true);
+    makeBird();
     
     birdInterval = setInterval(function() {
         makeBird();
@@ -247,47 +305,33 @@ function makeBird() {
     // Sometimes have no bird
     if (Math.random() >= 0.2) {
         var bird = applyLandObject('./images/birds/' + getRandomBird(), 101);
-        bird.id = 'bird';
-        
-        // Determine how fast we're going
         var flightSpeed = getRandomInt(20, 45);
-        bird.style.transition = 'left ' + flightSpeed + 's linear';
+        bird.style.left = '-40px';
+        bird.className += ' bird';
+        bird.style.animationDuration = flightSpeed + 's';
+        bird.style.setProperty('--start', getDocumentWidth() + 40 + 'px');
         
-        // Now determine if we're going right to left or the other way
-        // All the birds face left, so if we're going opposite we need to flip our image
-        // Left is defined as style.left going from 100% to 0
-        var flyingRightToLeft = getRandomBoolean();
-        if (flyingRightToLeft) {
-            bird.style.left = getDocumentWidth() + 40 + 'px';
-        }
-        else {
-            flipObject(bird);
-            bird.style.left = '-40px';
-        }
-        
-        setTimeout(function() {
-            if (flyingRightToLeft) {
-                bird.style.left = '-40px';
-            }
-            else {
-                bird.style.left = getDocumentWidth() + 40 + 'px';
-            }
-        }, 5);
-        
-        // Clean up our bird once it's offscreen
         setTimeout(function() {
             deleteChild(bird);
-        }, (flightSpeed * 1000 + 2000));
+        }, flightSpeed * 1000);
     }
 }
 
 function initWater() {
+    // Note if the player hasn't passed a day keep the brightness normal so they get a traditional map
+    if (player.day <= 1) {
+        waterBrightness = 1;
+    }
+    
     // The water area is clickable to cast your line into
     var waterDiv = document.createElement('div');
     waterDiv.id = 'water';
     waterDiv.className = 'water';
     waterDiv.style.width = getDocumentWidth() - LAND_WIDTH + 'px';
     waterDiv.style.left = LAND_WIDTH + 'px';
+    if (waterBrightness !== 1) {
+        waterDiv.style.filter = 'brightness(' + waterBrightness + ')';
+    }
     waterDiv.addEventListener('click', clickToFish, true);
     
     addChild(waterDiv);
@@ -299,16 +343,52 @@ function initWater() {
 function initWaterObjects() {
     var backgroundObjects = getDocumentWidth() * getDocumentHeight() / 10000; // Count of how many objects to make
     
-    // Background objects, a bit sparse in the water
+    // Have a chance for nearly empty water, once the player has seen a normal map
+    if (player.day > 1 && Math.random() >= 0.97) {
+        backgroundObjects = getRandomInt(3, 10);
+    }
+    
+    // Prep our weeds, shallows, islands, etc.
+    var tonsWeeds = Math.random() < 0.2;
+    var groupWeeds = Math.random() <= 0.4; // Group the weeds either out in the water or close to short, depending on weedsFar flag
+    var weedsFar = getRandomBoolean();
+    var noShallows = Math.random() >= 0.8;
     var islandCount = 0;
     var currentObject;
+    var waterWidth = getDocumentWidth() - LAND_WIDTH; // Handy for calculations later
+    
     for (var backgroundLoop = 0; backgroundLoop < backgroundObjects; backgroundLoop++) {
         if (Math.random() > 0.06) {
-            currentObject = applyWaterObject('./images/terrain/sparkle' + getRandomInt(1, 3) + '.png', 1, true);
+            if ((!tonsWeeds && Math.random() <= 0.87) || (tonsWeeds && Math.random() <= 0.2)) {
+                currentObject = applyWaterObject('./images/terrain/sparkle' + getRandomInt(1, 3) + '.png', 0, true);
+                
+                // Note we also put the opacity way down to blend in better
+                currentObject.style.opacity = getRandomFloat(0.1, 0.3);
+                currentObject.style.filter = 'blur(' + getRandomFloat(0, 1.2) + 'px)';
+                if (waterBrightness !== -1) {
+                    currentObject.style.filter += ' brightness(' + waterBrightness + ')';
+                }
+            }
+            else {
+                currentObject = applyWaterObject('./images/terrain/weed' + getRandomInt(1, 2) + '.png', 0);
+                if (getRandomBoolean()) {
+                    flipObject(currentObject);
+                }
+                
+                // A bit fancy, but we want to bring the weeds closer to the land
+                if (groupWeeds &&
+                    parseInt(currentObject.style.left) > (LAND_WIDTH + ((waterWidth / 2) * (weedsFar ? -1 : 1)))) {
+                    currentObject.style.left = (parseInt(currentObject.style.left) - ((waterWidth / 2) * (weedsFar ? -1 : 1))) + 'px';
+                }
+                
+                // Make the weeds appear at varying depths
+                currentObject.style.opacity = getRandomFloat(0.1, 0.55);
+                currentObject.style.filter = 'blur(' + ((1-currentObject.style.opacity)*1.3) + 'px)';
+                if (waterBrightness !== -1) {
+                    currentObject.style.filter += ' brightness(' + waterBrightness + ')';
+                }
+            }
             currentObject.addEventListener('click', clickToFish, true);
-            
-            // Note we also put the opacity way down to blend in better
-            currentObject.style.opacity = 0.2;
         }
         else {
             if (Math.random() > 0.7 && islandCount < 3) { // Cap at 3 islands
@@ -356,10 +436,14 @@ function initWaterObjects() {
                     },0);
                 }
             }
-            else {
+            else if (!noShallows) {
                 currentObject = applyWaterObject('./images/terrain/shallow.png', 1, true);
                 currentObject.addEventListener('click', clickToFish, true);
-                currentObject.style.opacity = 0.8;
+                currentObject.style.opacity = getRandomFloat(0.6, 0.9);
+                currentObject.style.filter = 'blur(' + getRandomFloat(0, 2) + 'px)';
+                if (waterBrightness !== -1) {
+                    currentObject.style.filter += ' brightness(' + waterBrightness + ')';
+                }
             }
         }
     }
@@ -369,11 +453,41 @@ function initWaterObjects() {
         // Chance for a double tree
         var treeCount = Math.random() > 0.8 ? 2 : 1;
         for (var i = 0; i < treeCount; i++) {
-            currentObject = applyWaterObject('./images/terrain/submerged_tree.png', 2);
+            currentObject = applyWaterObject('./images/terrain/submerged_tree' + getRandomInt(1, 3) +'.png', 2);
             currentObject.addEventListener('click', clickToFish, true);
-            // Flip the second tree for some variety, most of the time
-            if (i % 2 === 0 && Math.random() > 0.1) {
+            if (getRandomBoolean()) {
                 flipObject(currentObject);
+            }
+        }
+    }
+    if (Math.random() > 0.8 && backgroundObjects > 10) {
+        var lilyClumpTop = getRandomBoolean();
+        var horizontalModifier = getRandomFloat(2.5, 6);
+        var lilyCount = getRandomInt(2, backgroundObjects/15);
+        for (var i = 0; i < lilyCount; i++) {
+            currentObject = applyWaterObject('./images/terrain/lilypad' + getRandomInt(1, 4) + '.png', 4);
+            currentObject.addEventListener('click', clickToFish, true);
+            currentObject.style.opacity = 0.9;
+            if (getRandomBoolean()) {
+                flipObject(currentObject);
+            }
+            
+            // Bring the lilypads closer to the shore
+            if (parseInt(currentObject.style.left) > (LAND_WIDTH + (waterWidth / horizontalModifier))) {
+                currentObject.style.left = LAND_WIDTH + getRandomInt(10, (waterWidth / horizontalModifier)) + 'px';
+            }
+            
+            // Also clump the lilypads on the top
+            if (lilyClumpTop) {
+                if (parseInt(currentObject.style.top) > (getDocumentHeight()/4)) {
+                    currentObject.style.top = getRandomInt(0, getDocumentHeight()/4) + 'px';
+                }
+            }
+            // Or clump bottom
+            else {
+                if (parseInt(currentObject.style.top) < (getDocumentHeight()/1.5)) {
+                    currentObject.style.top = getRandomInt(getDocumentHeight()/1.5, getDocumentHeight()) + 'px';
+                }
             }
         }
     }
