@@ -278,12 +278,13 @@ function handleCaughtFish() {
     var filterHue = Math.random() <= 0.35 ? 0 : getRandomInt(1, 360); // Color shift the fish for more variety
     var flip = Math.random() <= 0.25 ? -1 : 1; // Sometimes flip the fish for even more variety
     trophy.innerHTML = 'You caught a <b>' + caughtFish.name + '</b><br/>' +
+                       '<div class="trophyWrap">' +
                        '<img onload="resizeTrophy()"' +
                        '     onclick="hideTrophy()"' +
                        '     src="' + caughtFish.path + '" class="trophyImg"' +
                        // We want some bright, colorful fish
                        '     style="filter: hue-rotate(' + filterHue + 'deg) saturate(1.3); transform: scaleX(' + flip + '); max-width: ' + Math.floor(getDocumentWidth()-100) + 'px; max-height: ' + Math.floor(getDocumentHeight()-300) + 'px;"/>' +
-                       '<br/>' +
+                       '</div>' +
                        '<button onclick="hideTrophy()" class="takeButton"><img src="./images/hook.png" class="trophyHook shake"/>&nbsp;Take</button>';
 }
 

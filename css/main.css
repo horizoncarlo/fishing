@@ -178,7 +178,7 @@ body {
 
 .trophy {
     width: auto;
-    padding: 25px 35px 20px 35px;
+    padding: 25px 60px 20px 60px;
     color: white;
     font-size: 24px;
 	background-image: url('../images/wood_mount.png');
@@ -192,8 +192,8 @@ body {
     margin: 20px 0 25px 0;
 }
 
-.trophyImg:hover {
-    transform: scale(1.05);
+.trophyWrap:hover {
+    transform: scale(1.1);
 }
 
 .trophyHook {
