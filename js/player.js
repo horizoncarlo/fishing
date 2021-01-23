@@ -12,6 +12,7 @@ var player = {
     caught: 0,
     money: 0,
     totalCaught: 0,
+    soundOn: true,
     avatar: {},
     // div, img, bobber, castBar, boat, pier, island
 };
@@ -25,6 +26,9 @@ function initPlayer() {
         width: '48px',
         height: '48px'
     };
+    if (!player.name) {
+        player.name = getRandomName();
+    }
     
     player.div = document.createElement('div');
     player.div.id = 'player';
@@ -98,7 +102,7 @@ function retirePlayer(button) {
     night.style.opacity = 0;
     var closeText = document.createElement('div');
     closeText.className = 'retireMessage';
-    closeText.innerHTML = 'You retire with <b style="color: goldenrod;">$' + Number(player.money).toLocaleString() + '</b> from <b>' + Number(player.totalCaught).toLocaleString() + '</b> fish after <b>' + Number(player.day).toLocaleString() + '</b> day' + (player.day !== 1 ? 's' : '') + '...';
+    closeText.innerHTML = player.name + ' retires with <b style="color: goldenrod;">$' + Number(player.money).toLocaleString() + '</b> from <b>' + Number(player.totalCaught).toLocaleString() + '</b> fish after <b>' + Number(player.day).toLocaleString() + '</b> day' + (player.day !== 1 ? 's' : '') + '...';
     var retireImg = document.createElement('img');
     retireImg.className = 'retireImage';
     retireImg.src = './images/retirement.jpg';
@@ -118,6 +122,7 @@ function retirePlayer(button) {
 }
 
 function resetAndReload() {
+    player.name = getRandomName();
     player.day = 1;
     player.bait = DEFAULT_BAIT;
     player.caught = 0;
@@ -625,4 +630,12 @@ function setHookAnimation() {
 
 function setIdleAnimation() {
     player.image.src = player.avatar.idle;
+}
+
+function changeName() {
+    var newName = window.prompt('Enter Your Name:', player.name);
+    if (newName && typeof newName === 'string' && newName.trim().length > 0) {
+        player.name = newName;
+        updateScoreboard(); // Update our displayed name, and this will also store the name in local storage
+    }
 }

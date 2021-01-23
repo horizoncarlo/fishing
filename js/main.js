@@ -1,13 +1,11 @@
 /*
 TODO:
-- Add fisherwoman animation
 - Go through and double check all our z-indexes. Space them out a bit more too, and perhaps compile a list
 - Add rain effect (https://codepen.io/arickle/pen/XKjMZY) instead of current snowflakes
 - Add a basic help system of an animated bird (somewhere on land) who you can click and will give you tips and explain game mechanics (like "re-cast after you miss a fish")?
 -- Speaking of birds should the flying ones we have just be the tip system? Simple and elegant...or they could give bait
 - Add more/different QTE events? Spamming the mouse scroll wheel could be interesting for the kids as it'd feel like reeling a fish in
 -- So pretty much 'qte.onwheel = func' in 'showQTE'
-- Replace boat and pier with animated images that have a gentle bob/sway?
 
 UNLIKELY:
 - Fish splashes in the water every so often, with a bonus to rarity/ease of catch if you cast right on the spot
@@ -277,13 +275,14 @@ function handleCaughtFish() {
     
     // Update our trophy content
     var caughtFish = getRandomFish();
-    var filterHue = Math.random() <= 0.35 ? 0 : getRandomInt(1, 360);
+    var filterHue = Math.random() <= 0.35 ? 0 : getRandomInt(1, 360); // Color shift the fish for more variety
+    var flip = Math.random() <= 0.25 ? -1 : 1; // Sometimes flip the fish for even more variety
     trophy.innerHTML = 'You caught a <b>' + caughtFish.name + '</b><br/>' +
                        '<img onload="resizeTrophy()"' +
                        '     onclick="hideTrophy()"' +
                        '     src="' + caughtFish.path + '" class="trophyImg"' +
                        // We want some bright, colorful fish
-                       '     style="filter: hue-rotate(' + filterHue + 'deg) saturate(1.3); max-width: ' + Math.floor(getDocumentWidth()-100) + 'px; max-height: ' + Math.floor(getDocumentHeight()-300) + 'px;"/>' +
+                       '     style="filter: hue-rotate(' + filterHue + 'deg) saturate(1.3); transform: scaleX(' + flip + '); max-width: ' + Math.floor(getDocumentWidth()-100) + 'px; max-height: ' + Math.floor(getDocumentHeight()-300) + 'px;"/>' +
                        '<br/>' +
                        '<button onclick="hideTrophy()" class="takeButton"><img src="./images/hook.png" class="trophyHook shake"/>&nbsp;Take</button>';
 }
@@ -575,7 +574,7 @@ function updateScoreboard() {
     var scoreboard = document.getElementById('scoreboard');
     if (scoreboard) {
         scoreboard.innerHTML = '<table width="100%">' +
-                               '<tr><th colspan="2">Day ' + player.day + '</th></tr>' +
+                               '<tr><th colspan="2"><span style="cursor: text;" onclick="changeName();">' + player.name + '\'' + (player.name.endsWith('s') ? '' : 's') + ' Day ' + player.day + '</span></th></tr>' +
                                '<tr><td width="80%">Bait Left:</td>' +
                                '<td class="scoreNum" width="20%" style="color: ' + (player.bait <= 1 ? 'red' : 'black') + ';">' + player.bait + '</td></tr>' +
                                '<tr><td>Fish Caught:</td>' +

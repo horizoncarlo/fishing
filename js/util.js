@@ -10,6 +10,32 @@ function getRandomBoolean() {
     return Math.random() > 0.5;
 }
 
+function getRandomName() {
+    var NAME_LIST = [
+        'Rusty',
+        'James',
+        'John',
+        'Robert',
+        'Michael',
+        'William',
+        'Richard',
+        'Joseph',
+        'Thomas',
+        'Charles',
+        'Mary',
+        'Patricia',
+        'Jennifer',
+        'Nancy',
+        'Barbara',
+        'Susan',
+        'Lisa',
+        'Ashley',
+        'Evelyn',
+        'Elizabeth',
+    ];
+    return NAME_LIST[Math.floor(Math.random() * NAME_LIST.length)];
+}
+
 /**
  * Returns a random lower case letter
  */
@@ -57,23 +83,28 @@ function deleteChild(child) {
     document.getElementById('game').removeChild(child);
 }
 
-function showLongMessage(text) {
-    showMessage(text, true);
+function showLongMessage(text, object) {
+    showMessage(text, true, object);
 }
 
 /**
  * Show a floating message above the player's head
  * Pass 'longer' as true to have the message be a bit slower
  */
-function showMessage(text, longer) {
+function showMessage(text, longer, object) {
     console.log(text);
     
     var longerMod = 0;
     var message = document.createElement('div');
     message.innerHTML = text;
     message.className = 'message';
-    message.style.setProperty('--start', parseInt(player.image.getBoundingClientRect().top) - 12 + 'px');
-    message.style.left = player.div.getBoundingClientRect().left - (text.length * 2) + 'px';
+    
+    if (!object) {
+        object = player.image;
+    }
+    
+    message.style.setProperty('--start', parseInt(object.getBoundingClientRect().top) - 12 + 'px');
+    message.style.left = object.getBoundingClientRect().left - (text.length * 2) + 'px';
     message.style.opacity = 1;
     addChild(message);
     
@@ -123,20 +154,24 @@ function trimFileName(fileName) {
 
 function saveSession() {
     setStorage('difficulty', difficulty.current);
+    setStorage('name', player.name);
     setStorage('day', player.day);
     setStorage('bait', player.bait);
     setStorage('caught', player.caught);
     setStorage('totalCaught', player.totalCaught);
     setStorage('money', player.money);
+    setStorage('soundOn', player.soundOn);
 }
 
 function loadSession() {
     difficulty.current = parseInt(getStorage('difficulty', 0));
+    player.name = getStorage('name', getRandomName());
     player.day = parseInt(getStorage('day', 1));
     player.bait = parseInt(getStorage('bait', DEFAULT_BAIT));
     player.caught = parseInt(getStorage('caught', 0));
     player.totalCaught = parseInt(getStorage('totalCaught', 0));
     player.money = parseInt(getStorage('money', 0));
+    player.soundOn = (getStorage('soundOn', 'true') === 'true');
 }
 
 function setStorage(name, value) {
@@ -171,6 +206,8 @@ function getRandomBird() {
 function getRandomFishFolder() {
     var folders = [
         'florida',
+        'outer-banks',
+        'virginia',
     ];
     return folders[Math.floor(Math.random() * folders.length)];
 }
@@ -208,6 +245,7 @@ function getRandomFish(recursion) {
 			'Hogfish.png',
 			'Lionfish.png',
 			'Lizardfish.png',
+			'Lizzys-Snake.png',
 			'Midnight-Parrotfish.png',
 			'Moray-Eel.png',
 			'Nassau-Grouper.png',
@@ -245,8 +283,88 @@ function getRandomFish(recursion) {
     }
     else if (folder === 'outer-banks') {
         fishes = [
-            'Marlin.png',
-            'Sailfish.png'
+			'Atlantic-Bluefin-Tuna.png',
+			'Atlantic-Spadefish.png',
+			'Atlantic-Tripletail.png',
+			'Bigeye-Tuna.png',
+			'Cobia.png',
+			'Dolphinfish.png',
+			'Dull-Snapper.png',
+			'Gag.png',
+			'Greater-Amberjack.png',
+			'King-Mackerel.png',
+			'Little-Tunny.png',
+			'Mackerel.png',
+			'Marlin.png',
+			'Pompano.png',
+			'Porgy.png',
+			'Prairie-Fish.png',
+			'Red-Snapper.png',
+			'Sailfish.png',
+			'Sheepshead.png',
+			'Shining-Triggerfish.png',
+			'Silver-Runner.png',
+			'Snowy-Grouper.png',
+			'Southern-Flounder.png',
+			'Southern-Kingfish.png',
+			'Spotted-Seatrout.png',
+			'Striped-Bass.png',
+			'Swordfish.png',
+			'Tailspot-Drum.png',
+			'Tallfin-Drum.png',
+			'Tilefish.png',
+			'Vermilion-Snapper.png',
+			'Wahoo.png',
+			'Weakfish.png',
+			'Yellowfin-Tuna.png',
+        ];
+    }
+    else if (folder === 'virginia') {
+        fishes = [
+			'Atlantic-Menhaden.png',
+			'Atlantic-Sturgeon.png',
+			'Black-Crappie.png',
+			'Bowfin.png',
+			'Brook-Trout.png',
+			'Chain-Pickerel.png',
+			'Channel-Catfish.png',
+			'Charlesbane.png',
+			'Common-Carp.png',
+			'Creek-Chubsucker.png',
+			'Day-Bass.png',
+			'Deepgill.png',
+			'Dotted-Trout.png',
+			'Evelyns-Spotted-Cheetah-Fish.png',
+			'Finned-Pickerel.png',
+			'Flat-Bullhead.png',
+			'Flathead-Catfish.png',
+			'Flier.png',
+			'Ghost-Perch.png',
+			'Glowbreast-Sunfish.png',
+			'Gold-Perch.png',
+			'Grass-Carp.png',
+			'Hearty-Catfish.png',
+			'Heavy-Catfish.png',
+			'Hybrid-Striped-Bass.png',
+			'Largemouth-Bass.png',
+			'Lined-Sunfish.png',
+			'Longear-Sunfish.png',
+			'Mottled-Bullhead.png',
+			'Mud-Sunfish.png',
+			'Mustard-Bullhead.png',
+			'Northern-Pike.png',
+			'Pumpkinseed.png',
+			'Quillback.png',
+			'Rainbow-Trout.png',
+			'Redear-Sunfish.png',
+			'Shineback-Herring.png',
+			'Shortnose-Sturgeon.png',
+			'Smallmouth-Bass.png',
+			'Snakehead.png',
+			'Snow-Crappie.png',
+			'Striped-Bass.png',
+			'Walleye.png',
+			'Warmouth.png',
         ];
     }
     else {

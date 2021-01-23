@@ -72,8 +72,9 @@ body {
 
 .shackMenu {
     position: absolute;
-    width: 100px;
+    width: 150px;
     border: 3px outset #DDDDDD;
+    box-shadow: 10px 10px 10px rgba(0,0,0,0.5);
     background-color: white;
     padding: 10px;
     color: black;
