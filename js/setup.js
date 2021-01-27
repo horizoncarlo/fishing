@@ -89,12 +89,8 @@ function initLand() {
     shack.id = 'shack';
     shack.title = 'Left Click: Change Difficulty\nRight Click: Settings Menu';
     shack.className = 'bo shack';
-    shack.style.top = 0;
-    shack.style.left = 0;
     shack.style.width = '85px';
     shack.style.height = '85px';
-    shack.style.cursor = 'help';
-    shack.style.zIndex = 10;
     shack.style.backgroundImage = "url('./images/shack.png')"; // Set the door closed manually at first, to preload the image and prevent flicker later
     shack.addEventListener('click', toggleDifficulty);
     addChild(shack);
@@ -137,12 +133,8 @@ function initLand() {
                 shackMenu.innerHTML += '<button onclick="closeShackMenu(); initSun();">&cross; Sun</button>';
             }
             
-            if (document.getElementById('snowflakes')) {
-                shackMenu.innerHTML += '<button onclick="closeShackMenu(); removeSnow();">&check; Snow</button>';    
-            }
-            else {
-                shackMenu.innerHTML += '<button onclick="closeShackMenu(); initSnow();">&cross; Snow</button>';
-            }
+            shackMenu.innerHTML += '<button onclick="closeShackMenu(); cycleWeather();">' +
+                                   ((document.getElementById('rain') || document.getElementById('snowflakes')) ? '&check;' : '&cross;') + ' Weather</button>';
             
             if (difficulty.ALLOW_SOUND) {
                 if (typeof beep !== 'undefined' && player.soundOn) {
@@ -347,9 +339,19 @@ function initLandObjects() {
         }
     }
     
-    // Weather effects
-    if (isChristmas || (Math.random() > 0.89)) {
+    // Weather effects, mandatory snow for Christmas, otherwise higher chance of rain than snow, if weather happens at all
+    if (isChristmas) {
         initSnow();
+    }
+    else {
+        if (Math.random() > 0.7) {
+            if (Math.random() > 0.4) {
+                initRain();
+            }
+            else {
+                initSnow();
+            }
+        }
     }
 }
 
@@ -443,7 +445,7 @@ function removeCrab() {
 }
 
 function initSun() {
-    var sun = applyLandObject('./images/sun.gif', 60);
+    var sun = applyLandObject('./images/sun.gif');
     sun.id = 'sun';
     sun.className += ' sun';
     sun.style.left = 'auto';
@@ -454,6 +456,25 @@ function initSun() {
 function removeSun() {
     if (document.getElementById('sun')) {
         deleteChild(document.getElementById('sun'));
+    }
+}
+
+/**
+ * Change the weather between none, rain, and snow
+ */
+function cycleWeather() {
+    // If we have rain, make it snow instead
+    if (document.getElementById('rain')) {
+        removeRain();
+        initSnow();
+    }
+    // We have snow, so cycle to none
+    else if (document.getElementById('snowflakes')) {
+        removeSnow();
+    }
+    // Currently no weather, so start rain
+    else {
+        initRain();
     }
 }
 
@@ -485,6 +506,67 @@ function removeSnow() {
     }
 }
 
+function initRain() {
+    var rainFront = document.createElement('div');
+    rainFront.className = 'rain';
+    var rainBack = document.createElement('div');
+    rainBack.className = 'rain rainBackRow';
+    
+    // Setup our drops
+    var frontHTML = "";
+    var backHTML = "";
+    var increment = 0;
+    var volumeDecider = Math.random();
+    var stemWidth = 1;
+    var densityModifier = 2; // Denser rain is a lower number, lighter rain is a higher number
+    
+    // Light rain
+    if (volumeDecider <= 0.4) {
+        stemWidth = getRandomFloat(1, 1.75);
+        densityModifier = getRandomFloat(4, 15);
+    }
+    // Medium rain
+    else if (volumeDecider <= 0.72) {
+        stemWidth = getRandomFloat(2, 3);
+        densityModifier = getRandomFloat(2, 6);
+    }
+    // Heavy rain
+    else {
+        stemWidth = getRandomFloat(3, 5);
+        densityModifier = getRandomFloat(1.5, 3);
+    }
+    
+    // This is not a count of our drops, it's to ensure the entire screen (100%) is filled evenly with drops
+    while (increment < 100) {
+        increment += densityModifier;
+        
+        var variation = getRandomInt(1, 98);
+        frontHTML += '<div style="left: ' + increment + '%; animation-delay: 0.' + variation + 's; animation-duration: 0.5' + variation + 's;">' +
+                 '<div class="stem" style="' + (stemWidth !== 1 ? 'width: ' + stemWidth + 'px; ' : '') + 'animation-delay: 0.' + variation + 's; animation-duration: 0.5' + variation + 's;"></div></div>';
+        backHTML += '<div style="right: ' + increment + '%; animation-delay: 0.' + variation + 's; animation-duration: 0.5' + variation + 's;">' +
+                     '<div class="stem" style="' + (stemWidth !== 1 ? 'width: ' + stemWidth + 'px; ' : '') + 'animation-delay: 0.' + variation + 's; animation-duration: 0.5' + variation + 's;"></div></div>';
+    }
+    
+    // Set our divs to the generated content
+    rainFront.innerHTML = frontHTML;
+    rainBack.innerHTML = backHTML;
+    frontHTML = null;
+    backHTML = null;
+    
+    // Append it all together
+    var rain = document.createElement('div');
+    rain.id = 'rain';
+    rain.appendChild(rainFront);
+    rain.appendChild(rainBack);
+    document.body.appendChild(rain);
+}
+
+function removeRain() {
+    if (document.getElementById('rain')) {
+        document.body.removeChild(document.getElementById('rain'));
+    }
+}
+
 function initBirds() {
     // First make a bird right away, then start it on an interval
     makeBird();
@@ -500,7 +582,7 @@ function makeBird() {
     // Sometimes have no bird
     if (Math.random() >= 0.2) {
         var flightSpeed = getRandomInt(20, 45);
-        var bird = applyLandObject('./images/birds/' + getRandomBird(), 101);
+        var bird = applyLandObject('./images/birds/' + getRandomBird(), 400);
         bird.id = 'bird';
         bird.style.left = '-40px';
         bird.className += ' bird';
@@ -573,7 +655,7 @@ function initWaterObjects() {
                 // Note we also put the opacity way down to blend in better
                 currentObject.style.opacity = getRandomFloat(0.1, 0.3);
                 currentObject.style.filter = 'blur(' + getRandomFloat(0, 1.2) + 'px)';
-                if (waterBrightness !== -1) {
+                if (waterBrightness !== 1) {
                     currentObject.style.filter += ' brightness(' + waterBrightness + ')';
                 }
             }
@@ -592,7 +674,7 @@ function initWaterObjects() {
                 // Make the weeds appear at varying depths
                 currentObject.style.opacity = getRandomFloat(0.1, 0.55);
                 currentObject.style.filter = 'blur(' + ((1-currentObject.style.opacity)*1.3) + 'px)';
-                if (waterBrightness !== -1) {
+                if (waterBrightness !== 1) {
                     currentObject.style.filter += ' brightness(' + waterBrightness + ')';
                 }
             }
@@ -649,7 +731,7 @@ function initWaterObjects() {
                 currentObject.addEventListener('click', clickToFish, true);
                 currentObject.style.opacity = getRandomFloat(0.6, 0.9);
                 currentObject.style.filter = 'blur(' + getRandomFloat(0, 2) + 'px)';
-                if (waterBrightness !== -1) {
+                if (waterBrightness !== 1) {
                     currentObject.style.filter += ' brightness(' + waterBrightness + ')';
                 }
             }

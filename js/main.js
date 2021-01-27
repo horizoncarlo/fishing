@@ -1,7 +1,5 @@
 /*
 TODO:
-- Go through and double check all our z-indexes. Space them out a bit more too, and perhaps compile a list
-- Add rain effect (https://codepen.io/arickle/pen/XKjMZY) instead of current snowflakes
 - Add a basic help system of an animated bird (somewhere on land) who you can click and will give you tips and explain game mechanics (like "re-cast after you miss a fish")?
 -- Speaking of birds should the flying ones we have just be the tip system? Simple and elegant...or they could give bait
 - Add more/different QTE events? Spamming the mouse scroll wheel could be interesting for the kids as it'd feel like reeling a fish in
@@ -136,7 +134,7 @@ function startFishing() {
                     currentChance += difficulty.FISHING_HELP_CHANCE;
                 }
             }
-        }, difficulty.FISHING_INTERVAL);
+        }, difficulty.FISHING_INTERVAL_MS);
     }, getRandomInt(difficulty.FISHING_INITIAL_DELAY_MIN, difficulty.FISHING_INITIAL_DELAY_MAX));
 }
 
@@ -344,7 +342,7 @@ function showQTE() {
     }
     
     // Restore any timer color and progress
-    var progress = qte.querySelector('#progress');
+    var progress = document.getElementById('progress');
     if (progress) {
         progress.style.backgroundColor = 'white';
         progress.style.width = null;
@@ -365,7 +363,7 @@ function showQTE() {
             qteInterval = null;
         }
         
-        var intervalMs = difficulty.QTE_INTERVAL;
+        var intervalMs = difficulty.QTE_INTERVAL_MS;
         if (lightningRound) {
             var divisor = 7;
             divisor -= (difficulty.current * -1);
@@ -395,7 +393,7 @@ function hideQTE() {
 function updateQTEText(text) {
     var qte = document.getElementById('qte');
     if (qte) {
-        var textEle = qte.querySelector('#text');
+        var textEle = document.getElementById('text');
         text = text ? text : currentQte;
         textEle.innerHTML = text;
         
@@ -414,7 +412,7 @@ function updateQTEText(text) {
 function updateQTEProgress() {
     var qte = document.getElementById('qte');
     if (qte) {
-        var progress = qte.querySelector('#progress');
+        var progress = document.getElementById('progress');
         if (progress) {
             if (!progress.style.width) {
                 progress.style.width = '100%';
@@ -589,6 +587,7 @@ function updateScoreboard() {
 
 function toggleDifficulty() {
     // Stop fishing to get a clean slate for difficulty change
+    stopCastBar();
     stopFishing(true);
     
     // Change the difficulty

@@ -12,15 +12,14 @@ var difficulty = {
     QTE_MATH_CHANCE: 10, // Math is a bit different as it's not mixed into an existing QTE, but is a separate event. Therefore the percent chance here is for a math (addition). 100 minus this percent is the chance for a combination of any other supported types
     QTE_MATH_MIN: 1,
     QTE_MATH_MAX: 5,
-    QTE_INTERVAL: 100, // How often (in milliseconds) the QTE timer should go down. Higher is easier.
+    QTE_INTERVAL_MS: 100, // How often (in milliseconds) the QTE timer should go down. Higher is easier.
     QTE_STEP: 0.01, // What percent the QTE timer should go down each interval. Higher is harder.
-    CAST_INTERVAL: 1, // How often (in milliseconds) the cast should go up/down. Higher is easier.
     CAST_STEP: 0.5, // What percent the cast should move up each interval. Higher is harder.
     CAST_SPEEDUP: 0.1, // How much to speed up on each iteration of the cast bar. Set to 0 to disable speedup. Higher is harder.
-    CAST_TOPWAIT: 40, // How many intervals to skip/wait once the cast reaches the top. This provides a small window to make it easier to get max cast. Put to 0 for no wait. Higher is easier.
+    CAST_TOPWAIT_MS: 50, // How many milliseconds to wait once the cast reaches the top. This provides a small window to make it easier to get max cast. Put to 0 for no wait. Higher is easier.
     CAST_MAX_BONUS: 0, // Potential extra bonus if perfect accuracy is achieved. Works out to percent/100, so don't put above 1. Set to 0 to disable. Higher is easier.
     CAST_ALLOW_COLOR: true, // Change the color of the cast line on fish hit. If false the player needs to look for the message and bobber
-    FISHING_INTERVAL: 800, // How often (in milliseconds)  we check if our line caught something. Higher is harder.
+    FISHING_INTERVAL_MS: 800, // How often (in milliseconds) we check if our line caught something. Higher is harder.
     FISHING_INITIAL_DELAY_MIN: 500, // An initial delay (in milliseconds) before starting our fishing interval. Higher is harder.
     FISHING_INITIAL_DELAY_MAX: 4000,
     FISHING_SUBSEQUENT_SKIP: 5, // How many intervals to skip once a fish has gotten away, before rolling to catch another. Higher is harder.
@@ -53,15 +52,14 @@ function applyDifficulty(showFish) {
         difficulty.QTE_MATH_CHANCE = 30;
         difficulty.QTE_MATH_MIN = getRandomInt(5, 8);
         difficulty.QTE_MATH_MAX = getRandomInt(10, 20);
-        difficulty.QTE_INTERVAL = 150;
-        difficulty.QTE_STEP = getRandomFloat(2.5, 4);
-        difficulty.CAST_INTERVAL = 1;
-        difficulty.CAST_STEP = getRandomFloat(0.8, 1.1);
-        difficulty.CAST_SPEEDUP = getRandomFloat(0.4, 0.5);
-        difficulty.CAST_TOPWAIT = 0;
+        difficulty.QTE_INTERVAL_MS = 150;
+        difficulty.QTE_STEP = getRandomFloat(2.5, 4, true);
+        difficulty.CAST_STEP = getRandomFloat(3.3, 4, true);
+        difficulty.CAST_SPEEDUP = getRandomFloat(1, 1.5, true);
+        difficulty.CAST_TOPWAIT_MS = 0;
         difficulty.CAST_MAX_BONUS = 0;
         difficulty.CAST_ALLOW_COLOR = Math.random() <= 0.8 ? false : true;
-        difficulty.FISHING_INTERVAL = 800;
+        difficulty.FISHING_INTERVAL_MS = 800;
         difficulty.FISHING_INITIAL_DELAY_MIN = 0;
         difficulty.FISHING_INITIAL_DELAY_MAX = 2000;
         difficulty.FISHING_SUBSEQUENT_SKIP = 8;
@@ -77,7 +75,7 @@ function applyDifficulty(showFish) {
         difficulty.QTE_SOFTSTART = 0;
         difficulty.QTE_LUCKYCHANCE = getRandomInt(5, 10);
         difficulty.QTE_MIN = getRandomInt(2, 3);
-        difficulty.QTE_MAX = getRandomInt(4, 6);
+        difficulty.QTE_MAX = getRandomInt(4, 5);
         difficulty.QTE_TYPES = [ 'lowNumbers', 'highNumbers', 'math' ];
         if (Math.random() >= 0.4) {
             difficulty.QTE_TYPES.push('letters');
@@ -88,15 +86,14 @@ function applyDifficulty(showFish) {
         difficulty.QTE_MATH_CHANCE = 20;
         difficulty.QTE_MATH_MIN = getRandomInt(2, 6);
         difficulty.QTE_MATH_MAX = getRandomInt(5, 10);
-        difficulty.QTE_INTERVAL = 150;
-        difficulty.QTE_STEP = getRandomFloat(1, 2.5);
-        difficulty.CAST_INTERVAL = 1;
-        difficulty.CAST_STEP = 0.6;
-        difficulty.CAST_SPEEDUP = 0.15;
-        difficulty.CAST_TOPWAIT = getRandomInt(10, 30);
+        difficulty.QTE_INTERVAL_MS = 150;
+        difficulty.QTE_STEP = getRandomFloat(1, 2.5, true);
+        difficulty.CAST_STEP = 2.2;
+        difficulty.CAST_SPEEDUP = getRandomFloat(0.55, 0.75, true);
+        difficulty.CAST_TOPWAIT_MS = 125;
         difficulty.CAST_MAX_BONUS = 0.02;
         difficulty.CAST_ALLOW_COLOR = true;
-        difficulty.FISHING_INTERVAL = 800;
+        difficulty.FISHING_INTERVAL_MS = 800;
         difficulty.FISHING_INITIAL_DELAY_MIN = 500;
         difficulty.FISHING_INITIAL_DELAY_MAX = 3000;
         difficulty.FISHING_SUBSEQUENT_SKIP = 7;
@@ -120,15 +117,14 @@ function applyDifficulty(showFish) {
         difficulty.QTE_MATH_CHANCE = 15;
         difficulty.QTE_MATH_MIN = getRandomInt(1, 3);
         difficulty.QTE_MATH_MAX = getRandomInt(3, 7);
-        difficulty.QTE_INTERVAL = 150;
+        difficulty.QTE_INTERVAL_MS = 150;
         difficulty.QTE_STEP = 0.5;
-        difficulty.CAST_INTERVAL = 1;
-        difficulty.CAST_STEP = 0.52;
-        difficulty.CAST_SPEEDUP = 0.1;
-        difficulty.CAST_TOPWAIT = 35;
+        difficulty.CAST_STEP = 2;
+        difficulty.CAST_SPEEDUP = getRandomFloat(0.3, 0.45, true);
+        difficulty.CAST_TOPWAIT_MS = 190
         difficulty.CAST_MAX_BONUS = 0.05;
         difficulty.CAST_ALLOW_COLOR = true;
-        difficulty.FISHING_INTERVAL = 800;
+        difficulty.FISHING_INTERVAL_MS = 800;
         difficulty.FISHING_INITIAL_DELAY_MIN = 500;
         difficulty.FISHING_INITIAL_DELAY_MAX = 3000;
         difficulty.FISHING_SUBSEQUENT_SKIP = 6;
@@ -152,15 +148,14 @@ function applyDifficulty(showFish) {
         difficulty.QTE_MATH_CHANCE = 10;
         difficulty.QTE_MATH_MIN = 1;
         difficulty.QTE_MATH_MAX = getRandomInt(1, 3)+1;
-        difficulty.QTE_INTERVAL = 150;
+        difficulty.QTE_INTERVAL_MS = 150;
         difficulty.QTE_STEP = 0.02;
-        difficulty.CAST_INTERVAL = 1;
-        difficulty.CAST_STEP = 0.5;
-        difficulty.CAST_SPEEDUP = 0;
-        difficulty.CAST_TOPWAIT = 60;
+        difficulty.CAST_STEP = 1.8;
+        difficulty.CAST_SPEEDUP = 0.1;
+        difficulty.CAST_TOPWAIT_MS = 275;
         difficulty.CAST_MAX_BONUS = 0.1;
         difficulty.CAST_ALLOW_COLOR = true;
-        difficulty.FISHING_INTERVAL = 800;
+        difficulty.FISHING_INTERVAL_MS = 800;
         difficulty.FISHING_INITIAL_DELAY_MIN = 500;
         difficulty.FISHING_INITIAL_DELAY_MAX = 3000;
         difficulty.FISHING_SUBSEQUENT_SKIP = 5;
@@ -193,7 +188,7 @@ function applyDifficulty(showFish) {
             
             if (difficulty.current > 0) {
                 for (var j = 0; j < difficulty.current; j++) {
-                    var fish = applyLandObject('./images/hanging_fish.png', 11);
+                    var fish = applyLandObject('./images/hanging_fish.png', 50);
                     fish.className += ' hangingFish';
                     
                     // Unfortunately have to hardcode our position to line up with the shack

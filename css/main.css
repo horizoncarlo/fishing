@@ -1,3 +1,25 @@
+/* Z-INDEX NOTES
+Night/Retire Overlay: 2000
+Shack Menu: 1000
+QTE/Trophy Dialog: 900
+Message: 800
+Scoreboard: 700
+Cast Bar: 600
+Snow: 500
+Rain: 495
+Bird: 400
+Player: 300
+Bobber: 200
+Fishing Line: 195
+Sun: 150
+Arrow: 100
+Difficulty Fish: 50
+Barrel: 20
+Pier: 15
+Shack: 10
+Terrain: 0-6
+*/
+
 @font-face {
     font-family: 'CarpalTunnel';
     src: url('../fonts/Carpal-Tunnel.ttf');
@@ -55,6 +77,26 @@ body {
     text-align: center;
 }
 
+/** background and water object - short name because we use a ton of them */
+.bo, .wo {
+    position: absolute;
+    z-index: 1;
+    cursor: not-allowed;
+}
+
+.wo {
+    cursor: crosshair;
+}
+
+/** fishing line - short name because we use a ton of them */
+.fl {
+    position: absolute;
+    height: 1px;
+    width: 1px;
+    background-color: #DDDDDD;
+    z-index: 195;
+}
+
 .shack:hover, .player:hover {
     border-radius: 30px;
     background-color: rgba(255, 255, 0, 0.5);
@@ -67,6 +109,10 @@ body {
 }
 
 .shack {
+    top: 0;
+    left: 0;
+    z-index: 10;
+    cursor: help;
     background-image: url('../images/shack.png');
 }
 
@@ -78,7 +124,7 @@ body {
     background-color: white;
     padding: 10px;
     color: black;
-    z-index: 400;
+    z-index: 1000;
 }
 
 .shackMenu button {
@@ -87,6 +133,7 @@ body {
 }
 
 .sun {
+    z-index: 150;
     filter: drop-shadow(0 0 10px goldenrod);
 }
 
@@ -119,13 +166,13 @@ body {
 
 .pier {
     position: absolute;
-    z-index: 10;
+    z-index: 15;
 }
 
 .castBarWrap {
     position: absolute;
     width: 300px;
-    z-index: 110;
+    z-index: 600;
 }
 
 .castRod {
@@ -143,7 +190,7 @@ body {
 
 .arrow {
     position: absolute;
-    z-index: 30;
+    z-index: 100;
     opacity: 1;
     transition: opacity 2s;
     cursor: not-allowed;
@@ -151,18 +198,18 @@ body {
 
 .bobber {
     position: absolute;
-    z-index: 85;
+    z-index: 200;
 }
 
 .barrel {
     position: absolute;
-    z-index: 12;
+    z-index: 20;
 }
 
 .qte, .trophy {
     position: absolute;
     max-height: calc(95% - 40px);
-    z-index: 125;
+    z-index: 900;
     text-align: center;
     overflow-y: auto;
 }
@@ -235,7 +282,7 @@ body {
 
 .scoreboard {
     position: absolute;
-    z-index: 105;
+    z-index: 700;
     left: 100px; /* Reliant on shack sizing */
     top: 10px;
     width: 220px;
@@ -252,9 +299,9 @@ body {
 
 .nightOverlay {
     position: absolute;
-    top: 0px;
-    left: 0px;
-    z-index: 500;
+    top: 0;
+    left: 0;
+    z-index: 2000;
     font-size: 80px;
     padding-top: 80px;
     font-weight: bold;
@@ -295,26 +342,6 @@ body {
     margin-right: auto;
 }
 
-/** backgroundObject - short name because we use a ton of them */
-.bo, .wo {
-    position: absolute;
-    z-index: 1;
-    cursor: not-allowed;
-}
-
-.wo {
-    cursor: crosshair;
-}
-
-/** fishing line - short name because we use a ton of them */
-.fl {
-    position: absolute;
-    height: 1px;
-    width: 1px;
-    background-color: #DDDDDD;
-    z-index: 80;
-}
-
 .message {
     position: absolute;
     animation-name: messageUp;
@@ -322,7 +349,7 @@ body {
     animation-duration: 6s;
     transition: opacity 4s;
     opacity: 1;
-    z-index: 30;
+    z-index: 800;
     font-size: 16px;
     font-weight: bold;
     color: #DDDDDD;
@@ -379,11 +406,8 @@ body {
     }
 }
 
-.snowflake {
-  color: #fff;
-  font-size: 1em;
-  font-family: Arial;
-  text-shadow: 0 0 1px #000;
-}
+/* Snow weather effect */
+.snowflake{color:#fff;font-size:1em;font-family:Arial;text-shadow:0 0 1px #000}@-webkit-keyframes snowflakes-fall{0%{top:-10%}100%{top:100%}}@-webkit-keyframes snowflakes-shake{0%{-webkit-transform:translateX(0);transform:translateX(0)}50%{-webkit-transform:translateX(80px);transform:translateX(80px)}100%{-webkit-transform:translateX(0);transform:translateX(0)}}@keyframes snowflakes-fall{0%{top:-10%}100%{top:100%}}@keyframes snowflakes-shake{0%{transform:translateX(0)}50%{transform:translateX(80px)}100%{transform:translateX(0)}}.snowflake{position:fixed;top:-10%;z-index:500;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;cursor:default;-webkit-animation-name:snowflakes-fall,snowflakes-shake;-webkit-animation-duration:10s,3s;-webkit-animation-timing-function:linear,ease-in-out;-webkit-animation-iteration-count:infinite,infinite;-webkit-animation-play-state:running,running;animation-name:snowflakes-fall,snowflakes-shake;animation-duration:10s,3s;animation-timing-function:linear,ease-in-out;animation-iteration-count:infinite,infinite;animation-play-state:running,running}.snowflake:nth-of-type(0){left:1%;-webkit-animation-delay:0s,0s;animation-delay:0s,0s}.snowflake:nth-of-type(1){left:10%;-webkit-animation-delay:1s,1s;animation-delay:1s,1s}.snowflake:nth-of-type(2){left:20%;-webkit-animation-delay:6s,.5s;animation-delay:6s,.5s}.snowflake:nth-of-type(3){left:30%;-webkit-animation-delay:4s,2s;animation-delay:4s,2s}.snowflake:nth-of-type(4){left:40%;-webkit-animation-delay:2s,2s;animation-delay:2s,2s}.snowflake:nth-of-type(5){left:50%;-webkit-animation-delay:8s,3s;animation-delay:8s,3s}.snowflake:nth-of-type(6){left:60%;-webkit-animation-delay:6s,2s;animation-delay:6s,2s}.snowflake:nth-of-type(7){left:70%;-webkit-animation-delay:2.5s,1s;animation-delay:2.5s,1s}.snowflake:nth-of-type(8){left:80%;-webkit-animation-delay:1s,0s;animation-delay:1s,0s}.snowflake:nth-of-type(9){left:90%;-webkit-animation-delay:3s,1.5s;animation-delay:3s,1.5s}
 
-@-webkit-keyframes snowflakes-fall{0%{top:-10%}100%{top:100%}}@-webkit-keyframes snowflakes-shake{0%{-webkit-transform:translateX(0px);transform:translateX(0px)}50%{-webkit-transform:translateX(80px);transform:translateX(80px)}100%{-webkit-transform:translateX(0px);transform:translateX(0px)}}@keyframes snowflakes-fall{0%{top:-10%}100%{top:100%}}@keyframes snowflakes-shake{0%{transform:translateX(0px)}50%{transform:translateX(80px)}100%{transform:translateX(0px)}}.snowflake{position:fixed;top:-10%;z-index:9999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;cursor:default;-webkit-animation-name:snowflakes-fall,snowflakes-shake;-webkit-animation-duration:10s,3s;-webkit-animation-timing-function:linear,ease-in-out;-webkit-animation-iteration-count:infinite,infinite;-webkit-animation-play-state:running,running;animation-name:snowflakes-fall,snowflakes-shake;animation-duration:10s,3s;animation-timing-function:linear,ease-in-out;animation-iteration-count:infinite,infinite;animation-play-state:running,running}.snowflake:nth-of-type(0){left:1%;-webkit-animation-delay:0s,0s;animation-delay:0s,0s}.snowflake:nth-of-type(1){left:10%;-webkit-animation-delay:1s,1s;animation-delay:1s,1s}.snowflake:nth-of-type(2){left:20%;-webkit-animation-delay:6s,.5s;animation-delay:6s,.5s}.snowflake:nth-of-type(3){left:30%;-webkit-animation-delay:4s,2s;animation-delay:4s,2s}.snowflake:nth-of-type(4){left:40%;-webkit-animation-delay:2s,2s;animation-delay:2s,2s}.snowflake:nth-of-type(5){left:50%;-webkit-animation-delay:8s,3s;animation-delay:8s,3s}.snowflake:nth-of-type(6){left:60%;-webkit-animation-delay:6s,2s;animation-delay:6s,2s}.snowflake:nth-of-type(7){left:70%;-webkit-animation-delay:2.5s,1s;animation-delay:2.5s,1s}.snowflake:nth-of-type(8){left:80%;-webkit-animation-delay:1s,0s;animation-delay:1s,0s}.snowflake:nth-of-type(9){left:90%;-webkit-animation-delay:3s,1.5s;animation-delay:3s,1.5s}
+/* Rain weather effect */
+.rain{position:absolute;left:0;width:100%;height:100%;z-index:495;pointer-events:none}.rainBackRow{opacity:.5}.rain>div{position:absolute;bottom:100%;width:15px;height:120px;animation:drop .5s linear infinite}@keyframes drop{0%{transform:translateY(0)}75%{transform:translateY(115vh)}100%{transform:translateY(100vh)}}.stem{width:1px;height:60%;margin-left:7px;background:linear-gradient(to bottom,rgba(255,255,255,.1),rgba(200,200,200,.5));animation:stem .5s linear infinite}@keyframes stem{0%{opacity:1}65%{opacity:1}75%{opacity:0}100%{opacity:0}}

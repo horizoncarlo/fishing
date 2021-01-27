@@ -1,6 +1,7 @@
 var DEFAULT_BAIT = 10;
 var currentCast = {
-    castInterval: null,
+    castFrame: null,
+    castIteration: 0,
     castMultiplicator: 1,
     x: 0,
     y: 0,
@@ -33,10 +34,11 @@ function initPlayer() {
     player.div = document.createElement('div');
     player.div.id = 'player';
     player.div.title = 'Click to cancel your current line';
+    // We hardcode the styling here because we manipulate the player class later for hovering
     player.div.style.position = 'absolute';
     player.div.style.left = '30px'; // Start outside the hut, but we'll quickly move to our starting location
     player.div.style.top = '60px';
-    player.div.style.zIndex = 100;
+    player.div.style.zIndex = 300;
     player.div.style.width = player.avatar.width;
     player.div.style.height = player.avatar.height;
     
@@ -280,85 +282,93 @@ function startCastBar(x, y) {
         // Use a bait
         incrementScoreboard(-1);
         
+        // Reset various state variables
         currentCast.x = x;
         currentCast.y = y;
         currentCast.castMultiplicator = 1; // Filling up
+        currentCast.castIteration = 0;
+        currentCast.accuracy = 0;
         
         // Stop any existing instance, then show a fresh one
         stopCastBar();
         showCastBar();
         
-        var currentWait = 0; // Potential wait where we skip some intervals
-        var currentIter = 0; // Current count of how many times we've been to 100% and not cast
-        var fill = player.castBar.querySelector('#fill');
-        currentCast.accuracy = parseInt(fill.style.width);
-        currentCast.castInterval = setInterval(function() {
-            // If we have a defined wait/skip, then ignore this loop for now
-            if (currentWait > 0) {
-                currentWait--;
-                return;
+        // Start animating the cast bar
+        currentCast.castFrame = requestAnimationFrame(performCastBar);
+    }
+}
+
+function performCastBar() {
+    // Increase/decrease our cast by the desired step
+    var currentStep = difficulty.CAST_STEP;
+    if (difficulty.CAST_SPEEDUP > 0) {
+        currentStep += (currentCast.castIteration * difficulty.CAST_SPEEDUP);
+    }
+    // Hard cap the step at 3x the original, to ensure we don't go to an unusable speed
+    if (currentStep/3 > difficulty.CAST_STEP) {
+        currentStep = difficulty.CAST_STEP * 3;
+    }
+    currentCast.accuracy += currentStep * currentCast.castMultiplicator;
+    
+    // If we're over 100% Accuracy then start the bar going the other way
+    if (currentCast.accuracy >= 100) {
+        currentCast.castMultiplicator *= -1;
+        currentCast.accuracy = 100;
+        currentCast.castIteration++;
+    }
+    // Same for 0 or below, start climbing back up
+    else if (currentCast.accuracy <= 0) {
+        currentCast.castMultiplicator *= -1;
+        currentCast.accuracy = 0;
+    }
+    
+    var fill = document.getElementById('fill');
+    if (fill) {
+        fill.style.width = currentCast.accuracy + '%';
+        
+        // Change our color based on cast accuracy
+        if (currentCast.accuracy >= 95) {
+            fill.style.backgroundColor = '#FFFFFF';
+        }
+        else if (currentCast.accuracy >= 65) {
+            fill.style.backgroundColor = '#00FF00';
+        }
+        else if (currentCast.accuracy <= 55 && currentCast.accuracy > 25) {
+            fill.style.backgroundColor = '#00BF00';
+        }
+        else if (currentCast.accuracy <= 25) {
+            fill.style.backgroundColor = '#008000';
+        }
+    }
+    
+    // Stall the cast at the top for a bit to provide a forgiving window
+    if (difficulty.CAST_TOPWAIT_MS > 0 && currentCast.accuracy === 100) {
+        setTimeout(function() {
+            // Just in case we cancelled our cast while waiting in this timeout
+            if (currentCast.castFrame) {
+                currentCast.castFrame = requestAnimationFrame(performCastBar);
             }
-            
-            // Increase/decrease our cast by the desired step
-            var currentStep = difficulty.CAST_STEP;
-            if (difficulty.CAST_SPEEDUP > 0) {
-                currentStep += (currentIter * difficulty.CAST_SPEEDUP);
-            }
-            // Hard cap the step at 3x the original, to ensure we don't go to an unusable speed
-            if (currentStep/4 > difficulty.CAST_STEP) {
-                currentStep = difficulty.CAST_STEP * 4;
-            }
-            currentCast.accuracy += currentStep * currentCast.castMultiplicator;
-            
-            // If we're over 100% Accuracy then start the bar going the other way
-            if (currentCast.accuracy >= 100) {
-                currentCast.castMultiplicator *= -1;
-                currentCast.accuracy = 100;
-                currentIter++;
-                
-                // Stall the cast at the top for a bit to provide a forgiving window
-                if (difficulty.CAST_TOPWAIT > 0) {
-                    currentWait = difficulty.CAST_TOPWAIT;
-                }
-            }
-            // Same for 0 or below, start climbing back up
-            else if (currentCast.accuracy <= 0) {
-                currentCast.castMultiplicator *= -1;
-                currentCast.accuracy = 0;
-            }
-            
-            fill.style.width = currentCast.accuracy + '%';
-            
-            // Change our color based on cast accuracy
-            if (currentCast.accuracy >= 95) {
-                fill.style.backgroundColor = '#FFFFFF';
-            }
-            else if (currentCast.accuracy >= 65) {
-                fill.style.backgroundColor = '#00FF00';
-            }
-            else if (currentCast.accuracy <= 55 && currentCast.accuracy > 25) {
-                fill.style.backgroundColor = '#00BF00';
-            }
-            else if (currentCast.accuracy <= 25) {
-                fill.style.backgroundColor = '#008000';
-            }
-        }, difficulty.CAST_INTERVAL);
+        }, difficulty.CAST_TOPWAIT_MS);
+    }
+    // Otherwise continue casting
+    else {
+        currentCast.castFrame = requestAnimationFrame(performCastBar);
     }
 }
 
 function stopCastBar() {
-    if (currentCast.castInterval) {
-        clearInterval(currentCast.castInterval);
-        currentCast.castInterval = null;
+    if (currentCast.castFrame) {
+        cancelAnimationFrame(currentCast.castFrame);
+        currentCast.castFrame = null;
         
         setIdleAnimation();
     }
     
-    if (player.castBar.querySelector('#fill')) {
-        player.castBar.querySelector('#fill').style.width = 0;
-    }
-    
     hideCastBar();
+    
+    if (document.getElementById('fill')) {
+        document.getElementById('fill').style.width = 0;
+    }
 }
 
 function showCastBar() {

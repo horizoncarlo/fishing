@@ -2,8 +2,13 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function getRandomFloat(min, max) {
-    return (Math.random() * (max - min)) + min;
+function getRandomFloat(min, max, allDecimalPlaces) {
+    if (!allDecimalPlaces) {
+        return parseFloat(((Math.random() * (max - min)) + min).toFixed(3));
+    }
+    else {
+        return (Math.random() * (max - min)) + min;
+    }
 }
 
 function getRandomBoolean() {
@@ -219,8 +224,6 @@ function getRandomFishFolder() {
  */
 var lastCatch;
 function getRandomFish(recursion) {
-    // TODO Eventually we could do specific bait for specific environments/fish. For now keep it simple, but somewhat future proofed by having the fish in folders
-    
     // First determine which folder to use
     var fishes = [];
     var folder = getRandomFishFolder();
@@ -245,7 +248,7 @@ function getRandomFish(recursion) {
 			'Hogfish.png',
 			'Lionfish.png',
 			'Lizardfish.png',
-			'Lizzys-Snake.png',
+			'Lizzy-Snake.png',
 			'Midnight-Parrotfish.png',
 			'Moray-Eel.png',
 			'Nassau-Grouper.png',
