@@ -88,9 +88,9 @@ function applyDifficulty(showFish) {
         difficulty.QTE_MATH_MAX = getRandomInt(5, 10);
         difficulty.QTE_INTERVAL_MS = 150;
         difficulty.QTE_STEP = getRandomFloat(1, 2.5, true);
-        difficulty.CAST_STEP = 2.2;
+        difficulty.CAST_STEP = 2.6;
         difficulty.CAST_SPEEDUP = getRandomFloat(0.55, 0.75, true);
-        difficulty.CAST_TOPWAIT_MS = 125;
+        difficulty.CAST_TOPWAIT_MS = 100;
         difficulty.CAST_MAX_BONUS = 0.02;
         difficulty.CAST_ALLOW_COLOR = true;
         difficulty.FISHING_INTERVAL_MS = 800;

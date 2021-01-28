@@ -643,9 +643,21 @@ function setIdleAnimation() {
 }
 
 function changeName() {
-    var newName = window.prompt('Enter Your Name:', player.name);
-    if (newName && typeof newName === 'string' && newName.trim().length > 0) {
-        player.name = newName;
-        updateScoreboard(); // Update our displayed name, and this will also store the name in local storage
-    }
+    // Do in a set timeout so the shack menu can close first
+    setTimeout(function() {
+        closeShackMenu();
+    }, 0);
+    setTimeout(function() {
+        var newName = window.prompt('Enter Your Name:', player.name);
+        if (newName && typeof newName === 'string' && newName.trim().length > 0) {
+            // Limit the player name length to 40 characters
+            // No fancy error messages, just chop off the extra
+            if (newName.trim().length > 40) {
+                newName = newName.trim().substring(0, 40);
+            }
+            
+            player.name = newName.trim();
+            updateScoreboard(); // Update our displayed name, and this will also store the name in local storage
+        }
+    }, 50);
 }

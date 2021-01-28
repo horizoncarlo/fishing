@@ -106,6 +106,12 @@ function initLand() {
         
         var shackMenu = document.getElementById('shackMenu');
         if (shackMenu) {
+            // If the menu is already open close it instead
+            if (shackMenu.style.display !== 'none') {
+                closeShackMenu();
+                return;
+            }
+            
             shackMenu.style.left = e.clientX;
             shackMenu.style.top = e.clientY;
             shackMenu.style.display = 'block';
@@ -145,7 +151,7 @@ function initLand() {
                 }
             }
             
-            shackMenu.innerHTML += '<button onclick="closeShackMenu(); changeName();">Change Name</button>';
+            shackMenu.innerHTML += '<button onclick="changeName();">Change Name</button>';
             
             if (shackMenu.innerHTML.trim().length === 0) {
                 shackMenu.innerHTML += '<div class="center">No actions available</div>';
