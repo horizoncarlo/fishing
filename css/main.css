@@ -27,9 +27,12 @@ Terrain: 0-6
 
 .fontPreload {
     font-family: 'CarpalTunnel';
+    font-size: 0;
+}
+
+.fontPreload, .imagePreload {
     visibility: hidden;
     height: 0;
-    font-size: 0;
 }
 
 html, body {
