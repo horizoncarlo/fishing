@@ -264,7 +264,7 @@ body {
 .qteText {
     font-size: 1200%;
     letter-spacing: 40px;
-    word-wrap: break-word;
+    word-wrap: break-all;
     display: block;
     vertical-align: middle;
     padding: 20px 0 20px 0;
@@ -289,7 +289,7 @@ body {
     left: 100px; /* Reliant on shack sizing */
     top: 10px;
     width: 220px;
-    word-break: break-all;
+    word-break: break-word;
     background-color: #DDDDDD;
     border-radius: 10px;
     box-shadow: 0 0 15px 5px rgba(0,0,0,0.5);
